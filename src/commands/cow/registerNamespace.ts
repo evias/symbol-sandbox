@@ -44,7 +44,8 @@ import {
     MosaicDefinitionTransaction,
     MosaicProperties,
     MosaicSupplyChangeTransaction,
-    MosaicSupplyType
+    MosaicSupplyType,
+    RegisterNamespaceTransaction
 } from 'nem2-sdk';
 
 import {
@@ -60,13 +61,13 @@ import {BaseCommand, BaseOptions} from '../../base-command';
 export class CommandOptions extends BaseOptions {
     @option({
         flag: 'n',
-        description: 'Mosaic Name',
+        description: 'Namespace name',
     })
     name: string;
 }
 
 @command({
-    description: 'Check for cow compatibility of MosaicDefinition',
+    description: 'Check for cow compatibility of RegisterNamespace',
 })
 export default class extends BaseCommand {
 
@@ -82,86 +83,46 @@ export default class extends BaseCommand {
         try {
             name = OptionsResolver(options,
                 'name',
-                () => { return this.getAddress().plain(); },
-                'Enter a mosaic name: ');
+                () => { return ''; },
+                'Enter a namespace name: ');
         } catch (err) {
             console.log(options);
-            throw new ExpectedError('Enter a valid mosaic name');
+            throw new ExpectedError('Enter a valid namespace name');
         }
 
-        return await this.createMosaic();
+        return await this.registerNamespace(name);
     }
 
-    public async createMosaic(): Promise<Object>
+    public async registerNamespace(name: string): Promise<Object>
     {
         const address = this.getAddress();
         const account = this.getAccount();
 
-        let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(XEM.MOSAIC_ID, UInt64.fromUint(10)));
+        // TEST: send register namespace transaction
 
-        // TEST: send mosaic creation transaction
-
-        // STEP 1: MosaicDefinition
         const bytes = nacl_catapult.randomBytes(8);
         const nonce = uint64_t.fromBytes(bytes);
         const mosId = mosaicId(nonce, convert.hexToUint8(account.publicKey));
 
-        const createTx = MosaicDefinitionTransaction.create(
+        const registerTx = RegisterNamespaceTransaction.createRootNamespace(
             Deadline.create(),
-            new UInt64(nonce),
-            new UInt64(mosId),
-            MosaicProperties.create({
-                supplyMutable: true,
-                transferable: true,
-                levyMutable: false,
-                divisibility: 3,
-                duration: UInt64.fromUint(1000),
-            }),
+            name,
+            UInt64.fromUint(1000),
             NetworkType.MIJIN_TEST
         );
 
-        console.log("MosaicDefinitionTransaction: ", createTx);
-        console.log("Mosaic ID: ", mosId);
-        console.log("Mosaic ID.toDTO()", (new UInt64(mosId)).compact());
-
-/*
-        // STEP 2: MosaicSupplyChange
-        const supplyTx = MosaicSupplyChangeTransaction.create(
-            Deadline.create(),
-            createTx.mosaicId,
-            MosaicSupplyType.Increase,
-            UInt64.fromUint(1000000),
-            NetworkType.MIJIN_TEST
-        );
-*/
-
-        const signedCreateTransaction = account.sign(createTx);
-        //const signedSupplyTransaction = account.sign(supplyTx);
+        const signedTransaction = account.sign(registerTx);
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);
-        return transactionHttp.announce(signedCreateTransaction).subscribe(() => {
-            console.log('MosaicDefinition announced correctly');
-            console.log('Hash:   ', signedCreateTransaction.hash);
-            console.log('Signer: ', signedCreateTransaction.signer);
+        return transactionHttp.announce(signedTransaction).subscribe(() => {
+            console.log('RegisterNamespaceTransaction announced correctly');
+            console.log('Hash:   ', signedTransaction.hash);
+            console.log('Signer: ', signedTransaction.signer);
             console.log("");
-/*
-            transactionHttp.announce(signedSupplyTransaction).subscribe(() => {
-                console.log('MosaicSupplyChange announced correctly');
-                console.log('Hash:   ', signedSupplyTransaction.hash);
-                console.log('Signer: ', signedSupplyTransaction.signer);
-                console.log("");
-
-            }, (err) => {
-                let text = '';
-                text += 'testMosaicCreationAction() MosaicSupplyChange - Error';
-                console.log(text, err.response !== undefined ? err.response.text : err);
-            });
-*/
         }, (err) => {
             let text = '';
-            text += 'testMosaicCreationAction() MosaicDefinition - Error';
+            text += 'registerNamespace() RegisterNamespaceTransaction - Error';
             console.log(text, err.response !== undefined ? err.response.text : err);
         });
     }
