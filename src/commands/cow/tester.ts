@@ -49,7 +49,9 @@ import {
 
 import {
     convert,
-    mosaicId
+    mosaicId,
+    nacl_catapult,
+    uint64 as uint64_t
 } from "nem2-library";
 
 import {OptionsResolver} from '../../options-resolver';
@@ -311,14 +313,20 @@ export default class extends BaseCommand {
         // TEST 3: send mosaic creation transaction
 
         // STEP 1: MosaicDefinition
-        const nonce = [0xE7, 0xDE, 0x84, 0xB9];
+        const bytes = nacl_catapult.randomBytes(8);
+        const nonce = uint64_t.fromBytes(bytes);
+        const mosId = mosaicId(nonce, convert.hexToUint8(account.publicKey));
+        
+        console.log("Bytes: ", bytes);
+        console.log("Nonce: ", nonce);
+        console.log("MosaicID: ", mosId);
 
         const createTx = MosaicDefinitionTransaction.create(
             Deadline.create(),
-            UInt64.fromUint(0xE7DE84B9),
-            UInt64.fromUint(mosaicId(nonce, convert.hexToUint8(account.publicKey))),
+            new UInt64(nonce),
+            UInt64.fromUint(mosId),
             MosaicProperties.create({
-                supplyMutable: false,
+                supplyMutable: true,
                 transferable: false,
                 levyMutable: false,
                 divisibility: 3,
@@ -389,9 +397,27 @@ export default class extends BaseCommand {
             // Monitor transaction errors
             listener.status(Address.createFromRawAddress(this.accountAddress))
                 .subscribe(error => {
-                    console.log("Error:", error);
+                    let err = chalk.red("Error: ");
                     newBlockSubscription.unsubscribe();
                     listener.close();
+
+                    console.log(err, error);
+                },
+                error => console.error(error));
+
+            listener.confirmed(Address.createFromRawAddress(this.accountAddress))
+                .subscribe(tx => {
+                    let msg = chalk.green("Confirmed TX: ");
+
+                    console.log(msg, JSON.stringify(tx))
+                },
+                error => console.error(error));
+
+            listener.unconfirmedAdded(Address.createFromRawAddress(this.accountAddress))
+                .subscribe(tx => {
+                    let msg = chalk.yellow("Unconfirmed TX: ");
+
+                    console.log(msg, JSON.stringify(tx))
                 },
                 error => console.error(error));
         });

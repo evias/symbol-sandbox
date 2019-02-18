@@ -34,6 +34,22 @@ Convert UInt64 array notation:
 $ ./nem2-sandbox convert uint64 -i "[1, 1]"
 ```
 
+Cow network upgrade tester (transaction type tester)
+
+```bash
+$ ./nem2-sandbox cow tester -f transfer
+$ ./nem2-sandbox cow tester -f hashlock
+$ ./nem2-sandbox cow tester -f aggregate
+$ ./nem2-sandbox cow tester -f mosaic-creation
+$ ./nem2-sandbox cow tester -f 0x414d
+```
+
+Cow network upgrade mosaicId reader
+
+```bash
+$ ./nem2-sandbox cow tester -f mosaicId
+``` 
+
 ## Changelog
 
 Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.

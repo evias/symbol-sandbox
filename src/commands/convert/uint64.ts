@@ -23,7 +23,8 @@ import {
 
 import {
     convert,
-    mosaicId
+    mosaicId,
+    uint64 as uint64_t
 } from "nem2-library";
 
 import {OptionsResolver} from '../../options-resolver';
@@ -77,7 +78,7 @@ export default class extends BaseCommand {
         text += '-'.repeat(20) + '\n\n';
         text += 'UInt64:\t\t' + JSON.stringify(uint64.toDTO()) + '\n';
         text += 'Number:\t\t' + uint64.compact() + '\n';
-        text += 'Hexadecimal:\t' + uint64.toHex() + '\n';
+        text += 'Hexadecimal:\t' + uint64_t.toHex(uint64.toDTO()) + '\n';
         console.log(text);
     }
 
