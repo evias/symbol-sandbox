@@ -1,0 +1,145 @@
+
+/**
+ * 
+ * Copyright 2019 Grégory Saive for NEM (github.com/nemtech)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import chalk from 'chalk';
+import {command, ExpectedError, metadata, option} from 'clime';
+import {
+    UInt64,
+    Account,
+    NetworkType,
+    MosaicId,
+    MosaicService,
+    AccountHttp,
+    MosaicHttp,
+    NamespaceHttp,
+    MosaicView,
+    MosaicInfo,
+    Address,
+    Deadline,
+    Mosaic,
+    PlainMessage,
+    TransactionHttp,
+    TransferTransaction,
+    LockFundsTransaction,
+    XEM,
+    PublicAccount,
+    TransactionType,
+    Listener,
+    EmptyMessage,
+    AggregateTransaction,
+    MosaicDefinitionTransaction,
+    MosaicProperties,
+    MosaicSupplyChangeTransaction,
+    MosaicSupplyType
+} from 'nem2-sdk';
+
+import {
+    convert,
+    mosaicId,
+    nacl_catapult,
+    uint64 as uint64_t
+} from "nem2-library";
+
+import {OptionsResolver} from '../../options-resolver';
+import {BaseCommand, BaseOptions} from '../../base-command';
+
+export class CommandOptions extends BaseOptions {
+    @option({
+        flag: 'a',
+        description: 'Recipient address',
+    })
+    address: string;
+}
+
+@command({
+    description: 'Check for cow compatibility of HashLockTransaction (LockFundsTransaction)',
+})
+export default class extends BaseCommand {
+
+    constructor() {
+        super();
+    }
+
+    @metadata
+    async execute(options: CommandOptions) {
+        this.monitorAction();
+
+        let address;
+        try {
+            address = OptionsResolver(options,
+                'address',
+                () => { return this.getAddress().plain(); },
+                'Enter a recipient address: ');
+        } catch (err) {
+            console.log(options);
+            throw new ExpectedError('Enter a valid address');
+        }
+
+        const recipient = Address.createFromRawAddress(address);
+        return await this.lockFundsOf(recipient);
+    }
+
+    public async lockFundsOf(recipient: Address): Promise<Object>
+    {
+        const address = this.getAddress();
+        const account = this.getAccount();
+
+        // TEST 3: send hash lock transaction
+        const fundsTx = TransferTransaction.create(
+            Deadline.create(),
+            recipient,
+            [],
+            EmptyMessage,
+            NetworkType.MIJIN_TEST
+        );
+
+        const accountHttp = new AccountHttp(this.endpointUrl);
+        return accountHttp.getAccountInfo(recipient).subscribe((accountInfo) => {
+            const aggregateTx = AggregateTransaction.createBonded(
+                Deadline.create(),
+                [fundsTx.toAggregate(accountInfo.publicAccount)],
+                NetworkType.MIJIN_TEST, []);
+
+            const signedTransaction = account.sign(aggregateTx);
+
+            // create lock funds of 10 XEM for the aggregate transaction
+            const lockFundsTransaction = LockFundsTransaction.create(
+                Deadline.create(),
+                XEM.createRelative(10),
+                UInt64.fromUint(1000),
+                signedTransaction,
+                NetworkType.MIJIN_TEST,
+            );
+
+            const signedLockFundsTransaction = account.sign(lockFundsTransaction);
+
+            const transactionHttp = new TransactionHttp(this.endpointUrl);
+            transactionHttp.announce(signedLockFundsTransaction).subscribe(() => {
+                console.log('Announced lock funds transaction');
+                console.log('Hash:   ', signedLockFundsTransaction.hash);
+                console.log('Signer: ', signedLockFundsTransaction.signer, '\n');
+            }, (err) => {
+                let text = '';
+                text += 'testLockFundsAction() - Error';
+                console.log(text, err.response !== undefined ? err.response.text : err);
+            });
+        }, (err) => {
+            console.log("getAccountInfo error: ", err);
+        });
+    }
+
+}
