@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.0.3
+
+- Added better command definitions
+- Added `nem2-sandbox cow transfer`
+- Added `nem2-sandbox cow hashlock`
+- Added `nem2-sandbox cow aggregate`
+- Added `nem2-sandbox cow mosaicDefinition`
+- Added `nem2-sandbox cow registerNamespace`
+- Added `nem2-sandbox cow secretLock`
+- Added `nem2-sandbox cow aggregateMosaicCreation`
+
 ## v0.0.2
 
 - Base command line interface

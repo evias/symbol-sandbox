@@ -54,6 +54,7 @@ $ ./nem2-sandbox cow tester -f mosaicId
 
 Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
 
+- [0.0.3](CHANGELOG.md#v003) - 2019-02-18
 - [0.0.2](CHANGELOG.md#v002) - 2019-02-18
 - [0.0.1](CHANGELOG.md#v001) - 2019-02-16
 
