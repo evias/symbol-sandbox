@@ -89,8 +89,6 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
-        this.monitorAction();
-
         let secret;
         try {
             secret = OptionsResolver(options,
@@ -102,18 +100,13 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid secret');
         }
 
-        let address;
-        try {
-            address = OptionsResolver(options,
-                'address',
-                () => { return this.getAddress().plain(); },
-                'Enter a recipient address: ');
-        } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid recipient address');
-        }
+        // monitor for lock
+        const address = this.getAddress("tester1").plain();
+        this.monitorAddress(address);
 
-        const recipient = Address.createFromRawAddress(address);
+        // monitor for proof
+        const recipient = this.getAddress("tester2");
+        this.monitorAddress(recipient.plain());
 
         // create proof and secret
 
@@ -132,8 +125,9 @@ export default class extends BaseCommand {
 
     public async sendSecretLock(secret: string, proof: string, recipient: Address): Promise<Object>
     {
-        const address = this.getAddress();
-        const account = this.getAccount();
+        // Secret is sent by tester1
+        const address = this.getAddress("tester1");
+        const account = this.getAccount("tester1");
 
         // TEST: send register namespace transaction
         const accountHttp = new AccountHttp(this.endpointUrl);
@@ -170,8 +164,9 @@ export default class extends BaseCommand {
 
     public async sendSecretProof(secret: string, proof: string, recipient: Address): Promise<Object>
     {
-        const address = this.getAddress();
-        const account = this.getAccount();
+        // Proof is sent by tester2
+        const address = this.getAddress("tester2");
+        const account = this.getAccount("tester2");
 
         // TEST: send register namespace transaction
         const accountHttp = new AccountHttp(this.endpointUrl);

@@ -76,26 +76,14 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
-        this.monitorAction();
-
-        let name;
-        try {
-            name = OptionsResolver(options,
-                'name',
-                () => { return this.getAddress().plain(); },
-                'Enter a mosaic name: ');
-        } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid mosaic name');
-        }
-
+        this.monitorAddress(this.getAddress("tester1").plain());
         return await this.createMosaicWithSupplyAggregate();
     }
 
     public async createMosaicWithSupplyAggregate(): Promise<Object>
     {
-        const address = this.getAddress();
-        const account = this.getAccount();
+        const address = this.getAddress("tester1");
+        const account = this.getAccount("tester1");
 
         let mosaics: Mosaic[] = [];
         mosaics.push(new Mosaic(XEM.MOSAIC_ID, UInt64.fromUint(10)));

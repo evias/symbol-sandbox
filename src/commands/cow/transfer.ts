@@ -76,20 +76,11 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
-        this.monitorAction();
 
-        let address;
-        try {
-            address = OptionsResolver(options,
-                'address',
-                () => { return this.getAddress().plain(); },
-                'Enter a recipient address: ');
-        } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid address');
-        }
+        const address = this.getAddress("tester1").plain();
+        this.monitorAddress(address);
 
-        const recipient = Address.createFromRawAddress(address);
+        const recipient = this.getAddress("tester2");
         return await this.sendTransferTo(recipient);
     }
 
@@ -97,9 +88,9 @@ export default class extends BaseCommand {
     {
         // TEST 2: send transfer
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(XEM.MOSAIC_ID, UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(XEM.MOSAIC_ID, UInt64.fromUint(1)));
 
-        const account   = this.getAccount();
+        const account   = this.getAccount("tester1");
         const message   = PlainMessage.create("Testing simple transfer");
 
         // prepare SDK transaction and sign it

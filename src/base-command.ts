@@ -24,25 +24,39 @@ export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
 
     public endpointUrl = "http://localhost:3000";
-    private privateKey    = "";
-    public accountAddress = "SACYZJLLP6OCY3KF3TTJRVE4W3MLNP5BQP75NKJC";
+    private accounts = {
+        "tester1": {
+            "address": "SACYZJLLP6OCY3KF3TTJRVE4W3MLNP5BQP75NKJC",
+            "privateKey": ""},
+        "tester2": {
+            "address": "SDUFICQAIHN2VYORJILRQ5YXAERLJF5HDTPJNXVR",
+            "privateKey": ""},
+        "tester3": {
+            "address": "SDAIUGSGF5R6O74FBSKLNIZZOIPCROFB23ELSQOY",
+            "privateKey": ""},
+    };
 
     constructor() {
         super();
         this.spinner.setSpinnerString('|/-\\');
     }
 
-    public getAccount(): Account
+    public getAccount(name: string): Account
     {
-        return Account.createFromPrivateKey(this.privateKey, NetworkType.MIJIN_TEST);
+        return Account.createFromPrivateKey(this.accounts[name].privateKey, NetworkType.MIJIN_TEST);
     }
 
-    public getAddress(): Address
+    public getAddress(name: string): Address
     {
-        return Address.createFromRawAddress(this.accountAddress);
+        return Address.createFromRawAddress(this.accounts[name].address);
     }
 
-    public monitorAction(): any
+    private getPrivateKey(name: string): string
+    {
+        return this.accounts[name].privateKey;
+    }
+
+    public monitorAddress(address: string): any
     {
         const listener = new Listener(this.endpointUrl);
         listener.open().then(() => {
@@ -58,7 +72,7 @@ export abstract class BaseCommand extends Command {
                 });
 
             // Monitor transaction errors
-            listener.status(Address.createFromRawAddress(this.accountAddress))
+            listener.status(Address.createFromRawAddress(address))
                 .subscribe(error => {
                     let err = chalk.red("[ERROR] Error: ");
                     newBlockSubscription.unsubscribe();
@@ -68,7 +82,7 @@ export abstract class BaseCommand extends Command {
                 },
                 error => console.error(error));
 
-            listener.confirmed(Address.createFromRawAddress(this.accountAddress))
+            listener.confirmed(Address.createFromRawAddress(address))
                 .subscribe(tx => {
                     let msg = chalk.green("[MONITOR] Confirmed TX: ");
 
@@ -76,7 +90,7 @@ export abstract class BaseCommand extends Command {
                 },
                 error => console.error(error));
 
-            listener.unconfirmedAdded(Address.createFromRawAddress(this.accountAddress))
+            listener.unconfirmedAdded(Address.createFromRawAddress(address))
                 .subscribe(tx => {
                     let msg = chalk.yellow("[MONITOR] Unconfirmed TX: ");
 

@@ -76,27 +76,17 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
-        this.monitorAction();
+        const address = this.getAddress("tester1");
+        this.monitorAddress(address.plain());
 
-        let address;
-        try {
-            address = OptionsResolver(options,
-                'address',
-                () => { return this.getAddress().plain(); },
-                'Enter a recipient address: ');
-        } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid address');
-        }
-
-        const recipient = Address.createFromRawAddress(address);
+        const recipient = Address.createFromRawAddress(address.plain());
         return await this.sendAggregateTransactionsTo(recipient);
     }
 
     public async sendAggregateTransactionsTo(recipient: Address): Promise<Object>
     {
-        const address = this.getAddress();
-        const account = this.getAccount();
+        const address = this.getAddress("tester1");
+        const account = this.getAccount("tester1");
 
         let mosaics: Mosaic[] = [];
         mosaics.push(new Mosaic(XEM.MOSAIC_ID, UInt64.fromUint(10)));

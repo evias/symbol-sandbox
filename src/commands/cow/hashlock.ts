@@ -76,18 +76,8 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
-        this.monitorAction();
-
-        let address;
-        try {
-            address = OptionsResolver(options,
-                'address',
-                () => { return this.getAddress().plain(); },
-                'Enter a recipient address: ');
-        } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid address');
-        }
+        const address = this.getAddress("tester1").plain();
+        this.monitorAddress(address);
 
         const recipient = Address.createFromRawAddress(address);
         return await this.lockFundsOf(recipient);
@@ -95,8 +85,8 @@ export default class extends BaseCommand {
 
     public async lockFundsOf(recipient: Address): Promise<Object>
     {
-        const address = this.getAddress();
-        const account = this.getAccount();
+        const address = this.getAddress("tester1");
+        const account = this.getAccount("tester1");
 
         // TEST 3: send hash lock transaction
         const fundsTx = TransferTransaction.create(

@@ -77,8 +77,6 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
-        this.monitorAction();
-
         let name;
         try {
             name = OptionsResolver(options,
@@ -90,13 +88,16 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid namespace name');
         }
 
+        const address = this.getAddress("tester1").plain();
+        this.monitorAddress(address);
+
         return await this.registerNamespace(name);
     }
 
     public async registerNamespace(name: string): Promise<Object>
     {
-        const address = this.getAddress();
-        const account = this.getAccount();
+        const address = this.getAddress("tester1");
+        const account = this.getAccount("tester1");
 
         // TEST: send register namespace transaction
 
