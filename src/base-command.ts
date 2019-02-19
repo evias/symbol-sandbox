@@ -36,9 +36,14 @@ export abstract class BaseCommand extends Command {
             "privateKey": ""},
     };
 
+    private hasBlockMonitor = false;
+    private blockSubscription = null;
+    private listener = null;
+
     constructor() {
         super();
         this.spinner.setSpinnerString('|/-\\');
+        this.listener = new Listener(this.endpointUrl);
     }
 
     public getAccount(name: string): Account
@@ -56,33 +61,40 @@ export abstract class BaseCommand extends Command {
         return this.accounts[name].privateKey;
     }
 
+    public monitorBlocks(): any
+    {
+        // Monitor new blocks
+        this.blockSubscription = this.listener.newBlock()
+            .subscribe(block => {
+                console.log("[MONITOR] New block created:" + block.height.compact());
+            },
+            error => {
+                console.error(error);
+                this.listener.terminate();
+            });
+
+        return this;
+    }
+
     public monitorAddress(address: string): any
     {
-        const listener = new Listener(this.endpointUrl);
-        listener.open().then(() => {
+        this.listener.open().then(() => {
 
-            // Monitor new blocks
-            const newBlockSubscription = listener.newBlock()
-                .subscribe(block => {
-                    console.log("[MONITOR] New block created:" + block.height.compact());
-                },
-                error => {
-                    console.error(error);
-                    listener.terminate();
-                });
+            if (! this.hasBlockMonitor) {
+                this.monitorBlocks();
+                this.hasBlockMonitor = true;
+            }
 
             // Monitor transaction errors
-            listener.status(Address.createFromRawAddress(address))
+            this.listener.status(Address.createFromRawAddress(address))
                 .subscribe(error => {
                     let err = chalk.red("[ERROR] Error: ");
-                    newBlockSubscription.unsubscribe();
-                    listener.close();
-
                     console.log(err, error);
                 },
                 error => console.error(error));
 
-            listener.confirmed(Address.createFromRawAddress(address))
+            // Monitor confirmed transactions
+            this.listener.confirmed(Address.createFromRawAddress(address))
                 .subscribe(tx => {
                     let msg = chalk.green("[MONITOR] Confirmed TX: ");
 
@@ -90,14 +102,27 @@ export abstract class BaseCommand extends Command {
                 },
                 error => console.error(error));
 
-            listener.unconfirmedAdded(Address.createFromRawAddress(address))
+            // Monitor unconfirmed transactions
+            this.listener.unconfirmedAdded(Address.createFromRawAddress(address))
                 .subscribe(tx => {
                     let msg = chalk.yellow("[MONITOR] Unconfirmed TX: ");
 
                     console.log(msg, JSON.stringify(tx))
                 },
                 error => console.error(error));
+
+            // Close monitor after 2 minutes
+            setTimeout(() => {
+                console.log("Now shutting down monitor..");
+                this.closeMonitors();
+            }, 2 * 60 * 1000);
         });
+    }
+
+    public closeMonitors(): any
+    {
+        this.blockSubscription.unsubscribe();
+        this.listener.close();
     }
 }
 
