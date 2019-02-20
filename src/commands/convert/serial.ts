@@ -112,12 +112,12 @@ export default class extends BaseCommand {
         let text = '';
         switch (typeBytes) {
         case '4D41':
-            const mosaicNonceLength = 16;
+            const mosaicNonceLength = 8;
             const mosaicIdLength    = 16;
-            const propsNumLength    = 4;
-            const propsFlagsLength  = 4;
-            const divisibilityLength= 4;
-            const durationIndLength = 4;
+            const propsNumLength    = 2;
+            const propsFlagsLength  = 2;
+            const divisibilityLength= 2;
+            const durationIndLength = 2;
             const durationLength    = 16;
 
             const mosaicIdOffset     = mosaicNonceLength;
