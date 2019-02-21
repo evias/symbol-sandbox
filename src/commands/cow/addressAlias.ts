@@ -42,7 +42,7 @@ import {
     Listener,
     EmptyMessage,
     AggregateTransaction,
-    MosaicAliasTransaction,
+    AddressAliasTransaction,
     AliasActionType
 } from 'nem2-sdk';
 
@@ -61,16 +61,11 @@ export class CommandOptions extends BaseOptions {
         flag: 'n',
         description: 'Namespace ID (JSON Uint64)',
     })
-    @option({
-        flag: 'm',
-        description: 'Mosaic ID (JSON Uint64)',
-    })
-    mosaicId: string;
     namespaceId: string;
 }
 
 @command({
-    description: 'Check for cow compatibility of MosaicAliasTransaction',
+    description: 'Check for cow compatibility of AddressAliasTransaction',
 })
 export default class extends BaseCommand {
 
@@ -92,42 +87,29 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid namespaceId (Array JSON ex: "[33347626, 3779697293]")');
         }
 
-        let mosaicId;
-        try {
-            mosaicId = OptionsResolver(options,
-                'mosaicId',
-                () => { return ''; },
-                'Enter a mosaicId: ');
-        } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid mosaicId (Array JSON ex: "[664046103, 198505464]")');
-        }
-
         // add a block monitor
         this.monitorBlocks();
 
-        const address = this.getAddress("tester1").plain();
-        this.monitorAddress(address);
+        const address = this.getAddress("tester1");
+        this.monitorAddress(address.plain());
 
-        return await this.createMosaicAlias(namespaceId, mosaicId);
+        return await this.createAddressAlias(namespaceId, address);
     }
 
-    public async createMosaicAlias(nsIdJSON: string, mosIdJSON: string): Promise<Object>
+    public async createAddressAlias(nsIdJSON: string, address: Address): Promise<Object>
     {
-        const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
 
-        // TEST: send mosaic alias transaction
+        // TEST: send address alias transaction
 
         const actionType  = AliasActionType.Link;
         const namespaceId = JSON.parse(nsIdJSON);
-        const mosaicId    = JSON.parse(mosIdJSON); 
 
-        const aliasTx = MosaicAliasTransaction.create(
+        const aliasTx = AddressAliasTransaction.create(
             Deadline.create(),
             actionType,
             new NamespaceId(namespaceId),
-            new MosaicId(mosaicId),
+            address,
             NetworkType.MIJIN_TEST
         );
 
@@ -139,14 +121,14 @@ export default class extends BaseCommand {
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);
         return transactionHttp.announce(signedTransaction).subscribe(() => {
-            console.log('MosaicAlias announced correctly');
+            console.log('AddressAlias announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
             console.log('Signer: ', signedTransaction.signer);
             console.log("");
 
         }, (err) => {
             let text = '';
-            text += 'createMosaicAlias() - Error';
+            text += 'createAddressAlias() - Error';
             console.log(text, err.response !== undefined ? err.response.text : err);
         });
     }
