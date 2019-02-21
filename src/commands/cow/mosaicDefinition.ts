@@ -77,6 +77,9 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
 
+        // add a block monitor
+        this.monitorBlocks();
+
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 

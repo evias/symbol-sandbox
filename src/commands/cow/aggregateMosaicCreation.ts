@@ -76,6 +76,9 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        // add a block monitor
+        this.monitorBlocks();
+
         this.monitorAddress(this.getAddress("tester1").plain());
         return await this.createMosaicWithSupplyAggregate();
     }

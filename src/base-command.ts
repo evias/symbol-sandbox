@@ -38,55 +38,47 @@ export abstract class BaseCommand extends Command {
 
     private hasBlockMonitor = false;
     private blockSubscription = null;
-    private listener = null;
+    private listenerAddresses = null;
+    private listenerBlocks = null;
 
     constructor() {
         super();
         this.spinner.setSpinnerString('|/-\\');
-        this.listener = new Listener(this.endpointUrl);
+        this.listenerAddresses = new Listener(this.endpointUrl);
+        this.listenerBlocks = new Listener(this.endpointUrl);
     }
 
-    public getAccount(name: string): Account
-    {
+    public getAccount(name: string): Account {
         return Account.createFromPrivateKey(this.accounts[name].privateKey, NetworkType.MIJIN_TEST);
     }
 
-    public getAddress(name: string): Address
-    {
+    public getAddress(name: string): Address {
         return Address.createFromRawAddress(this.accounts[name].address);
     }
 
-    private getPrivateKey(name: string): string
-    {
+    private getPrivateKey(name: string): string {
         return this.accounts[name].privateKey;
     }
 
-    public monitorBlocks(): any
-    {
-        // Monitor new blocks
-        this.blockSubscription = this.listener.newBlock()
-            .subscribe(block => {
-                console.log("[MONITOR] New block created:" + block.height.compact());
-            },
-            error => {
-                console.error(error);
-                this.listener.terminate();
-            });
+    public monitorBlocks(): any {
+        this.listenerBlocks.open().then(() => {
 
-        return this;
+            this.blockSubscription = this.listenerBlocks.newBlock()
+                .subscribe(block => {
+                    console.log("[MONITOR] New block created:" + block.height.compact());
+                },
+                error => {
+                    console.error(error);
+                    this.listenerBlocks.terminate();
+                });
+        });
     }
 
-    public monitorAddress(address: string): any
-    {
-        this.listener.open().then(() => {
-
-            if (! this.hasBlockMonitor) {
-                this.monitorBlocks();
-                this.hasBlockMonitor = true;
-            }
+    public monitorAddress(address: string): any {
+        this.listenerAddresses.open().then(() => {
 
             // Monitor transaction errors
-            this.listener.status(Address.createFromRawAddress(address))
+            this.listenerAddresses.status(Address.createFromRawAddress(address))
                 .subscribe(error => {
                     let err = chalk.red("[ERROR] Error: ");
                     console.log(err, error);
@@ -94,7 +86,7 @@ export abstract class BaseCommand extends Command {
                 error => console.error(error));
 
             // Monitor confirmed transactions
-            this.listener.confirmed(Address.createFromRawAddress(address))
+            this.listenerAddresses.confirmed(Address.createFromRawAddress(address))
                 .subscribe(tx => {
                     let msg = chalk.green("[MONITOR] Confirmed TX: ");
 
@@ -103,26 +95,20 @@ export abstract class BaseCommand extends Command {
                 error => console.error(error));
 
             // Monitor unconfirmed transactions
-            this.listener.unconfirmedAdded(Address.createFromRawAddress(address))
+            this.listenerAddresses.unconfirmedAdded(Address.createFromRawAddress(address))
                 .subscribe(tx => {
                     let msg = chalk.yellow("[MONITOR] Unconfirmed TX: ");
 
                     console.log(msg, JSON.stringify(tx))
                 },
                 error => console.error(error));
-
-            // Close monitor after 2 minutes
-            setTimeout(() => {
-                console.log("Now shutting down monitor..");
-                this.closeMonitors();
-            }, 2 * 60 * 1000);
         });
     }
 
     public closeMonitors(): any
     {
-        this.blockSubscription.unsubscribe();
-        this.listener.close();
+        this.listenerAddresses.close();
+        this.listenerBlocks.close();
     }
 }
 

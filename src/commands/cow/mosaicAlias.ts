@@ -58,10 +58,15 @@ import {BaseCommand, BaseOptions} from '../../base-command';
 
 export class CommandOptions extends BaseOptions {
     @option({
-        flag: 'm',
-        description: 'Mosaic ID',
+        flag: 'n',
+        description: 'Namespace ID (JSON Uint64)',
     })
-    name: string;
+    @option({
+        flag: 'm',
+        description: 'Mosaic ID (JSON Uint64)',
+    })
+    mosaicId: string;
+    namespaceId: string;
 }
 
 @command({
@@ -76,13 +81,38 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
 
+        let namespaceId;
+        try {
+            namespaceId = OptionsResolver(options,
+                'namespaceId',
+                () => { return ''; },
+                'Enter a namespaceId: ');
+        } catch (err) {
+            console.log(options);
+            throw new ExpectedError('Enter a valid namespaceId (Array JSON ex: "[33347626, 3779697293]")');
+        }
+
+        let mosaicId;
+        try {
+            mosaicId = OptionsResolver(options,
+                'mosaicId',
+                () => { return ''; },
+                'Enter a mosaicId: ');
+        } catch (err) {
+            console.log(options);
+            throw new ExpectedError('Enter a valid mosaicId (Array JSON ex: "[664046103, 198505464]")');
+        }
+
+        // add a block monitor
+        this.monitorBlocks();
+
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
-        return await this.createMosaicAlias();
+        return await this.createMosaicAlias(namespaceId, mosaicId);
     }
 
-    public async createMosaicAlias(): Promise<Object>
+    public async createMosaicAlias(nsIdJSON: string, mosIdJSON: string): Promise<Object>
     {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
@@ -90,8 +120,8 @@ export default class extends BaseCommand {
         // TEST: send mosaic alias transaction
 
         const actionType  = AliasActionType.Link;
-        const namespaceId = [33347626, 3779697293]; // namespace `evias`
-        const mosaicId    = [664046103, 198505464]; // test mosaic (`cow mosaicDefinition`)
+        const namespaceId = JSON.parse(nsIdJSON);
+        const mosaicId    = JSON.parse(mosIdJSON); 
 
         const aliasTx = MosaicAliasTransaction.create(
             Deadline.create(),

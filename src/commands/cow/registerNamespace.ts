@@ -88,6 +88,9 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid namespace name');
         }
 
+        // add a block monitor
+        this.monitorBlocks();
+
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
