@@ -90,8 +90,8 @@ export default class extends BaseCommand {
         // TEST: send mosaic alias transaction
 
         const actionType  = AliasActionType.Link;
-        const namespaceId = [3127188303, 2974383967]; // namespace `cat`
-        const mosaicId    = [481110499, 231112638];
+        const namespaceId = [33347626, 3779697293]; // namespace `evias`
+        const mosaicId    = [664046103, 198505464]; // test mosaic (`cow mosaicDefinition`)
 
         const aliasTx = MosaicAliasTransaction.create(
             Deadline.create(),

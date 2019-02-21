@@ -112,23 +112,7 @@ export default class extends BaseCommand {
             NetworkType.MIJIN_TEST
         );
 
-        console.log("MosaicDefinitionTransaction: ", createTx);
-        //console.log("Mosaic ID: ", mosId);
-        //console.log("Mosaic ID.toDTO()", (new UInt64(mosId)).compact());
-
-        // STEP 2: MosaicSupplyChange
-        const supplyTx = MosaicSupplyChangeTransaction.create(
-            Deadline.create(),
-            createTx.mosaicId,
-            MosaicSupplyType.Increase,
-            UInt64.fromUint(1000000),
-            NetworkType.MIJIN_TEST
-        );
-
         const signedCreateTransaction = account.sign(createTx);
-        const signedSupplyTransaction = account.sign(supplyTx);
-
-        //console.log("Signed Transaction: ", signedCreateTransaction);
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);
@@ -136,23 +120,10 @@ export default class extends BaseCommand {
             console.log('MosaicDefinition announced correctly');
             console.log('Hash:   ', signedCreateTransaction.hash);
             console.log('Signer: ', signedCreateTransaction.signer);
-            console.log("");
-
-            transactionHttp.announce(signedSupplyTransaction).subscribe(() => {
-                console.log('MosaicSupplyChange announced correctly');
-                console.log('Hash:   ', signedSupplyTransaction.hash);
-                console.log('Signer: ', signedSupplyTransaction.signer);
-                console.log("");
-
-            }, (err) => {
-                let text = '';
-                text += 'testMosaicCreationAction() MosaicSupplyChange - Error';
-                console.log(text, err.response !== undefined ? err.response.text : err);
-            });
 
         }, (err) => {
             let text = '';
-            text += 'testMosaicCreationAction() MosaicDefinition - Error';
+            text += 'createMosaic() MosaicDefinition - Error';
             console.log(text, err.response !== undefined ? err.response.text : err);
         });
     }
