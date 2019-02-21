@@ -91,13 +91,13 @@ export default class extends BaseCommand {
         // TEST 3: send mosaic creation transaction
 
         // STEP 1: MosaicDefinition
-        const bytes = nacl_catapult.randomBytes(8);
-        const nonce = uint64_t.fromBytes(bytes);
+        const bytes = nacl_catapult.randomBytes(4);
+        const nonce = new Uint8Array(bytes);
         const mosId = mosaicId(nonce, convert.hexToUint8(account.publicKey));
 
         const createTx = MosaicDefinitionTransaction.create(
             Deadline.create(),
-            new UInt64(nonce),
+            nonce,
             UInt64.fromUint(mosId),
             MosaicProperties.create({
                 supplyMutable: true,
