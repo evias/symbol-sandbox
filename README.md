@@ -34,26 +34,30 @@ Convert UInt64 array notation:
 $ ./nem2-sandbox convert uint64 -i "[1, 1]"
 ```
 
+Convert Public Key to address notation:
+
+```bash
+$ ./nem2-sandbox convert address
+Enter a public key: 33F0E2685732AE9E202F92B2B93A525BF77C4C14BBA22D088926BA8A7FD0BE13
+```
+
 Cow network upgrade tester (transaction type tester)
 
 ```bash
-$ ./nem2-sandbox cow tester -f transfer
-$ ./nem2-sandbox cow tester -f hashlock
-$ ./nem2-sandbox cow tester -f aggregate
-$ ./nem2-sandbox cow tester -f mosaic-creation
-$ ./nem2-sandbox cow tester -f 0x414d
+$ ./nem2-sandbox cow transfer
+$ ./nem2-sandbox cow hashlock
+$ ./nem2-sandbox cow aggregate
+$ ./nem2-sandbox cow mosaicDefinition
+$ ./nem2-sandbox cow registerNamespace -n namespace
+$ ./nem2-sandbox cow mosaicAlias
+$ ./nem2-sandbox cow addressAlias
 ```
-
-Cow network upgrade mosaicId reader
-
-```bash
-$ ./nem2-sandbox cow tester -f mosaicId
-``` 
 
 ## Changelog
 
 Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
 
+- [0.0.4](CHANGELOG.md#v004) - 2019-02-23
 - [0.0.3](CHANGELOG.md#v003) - 2019-02-18
 - [0.0.2](CHANGELOG.md#v002) - 2019-02-18
 - [0.0.1](CHANGELOG.md#v001) - 2019-02-16

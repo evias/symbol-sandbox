@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.0.4
+
+- Added separate listeners for block/addresses
+- Added multiple accounts configuration
+- Added `nem2-sandbox convert address`
+- Added `nem2-sandbox convert serial`
+- Added `nem2-sandbox cow addressAlias`
+- Added `nem2-sandbox cow mosaicAlias`
+- Fixed mosaicDefinition and aggregate
+- Added subnamespace in `cow registerNamespace`
+
 ## v0.0.3
 
 - Added better command definitions
