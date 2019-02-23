@@ -91,9 +91,6 @@ export default class extends BaseCommand {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
 
-        let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(XEM.MOSAIC_ID, UInt64.fromUint(10)));
-
         // TEST: send mosaic creation transaction
 
         // STEP 1: MosaicDefinition

@@ -108,7 +108,7 @@ export default class extends BaseCommand {
 
         // monitor for proof
         const recipient = this.getAddress("tester2");
-        this.monitorAddress(recipient.plain());
+        // this.monitorAddress(recipient.plain());
 
         // create proof and secret
 

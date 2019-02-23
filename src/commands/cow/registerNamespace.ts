@@ -28,6 +28,7 @@ import {
     NamespaceHttp,
     MosaicView,
     MosaicInfo,
+    NamespaceId,
     Address,
     Deadline,
     Mosaic,
@@ -63,7 +64,12 @@ export class CommandOptions extends BaseOptions {
         flag: 'n',
         description: 'Namespace name',
     })
+    @option({
+        flag: 'p',
+        description: 'Parent Namespace name',
+    })
     name: string;
+    parent?: string;
 }
 
 @command({
@@ -78,11 +84,17 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
         let name;
+        let parentName;
         try {
             name = OptionsResolver(options,
                 'name',
                 () => { return ''; },
                 'Enter a namespace name: ');
+
+            parentName = OptionsResolver(options,
+                'parentName',
+                () => { return ''; },
+                'Enter a namespace parent name: ');
         } catch (err) {
             console.log(options);
             throw new ExpectedError('Enter a valid namespace name');
@@ -94,10 +106,10 @@ export default class extends BaseCommand {
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
-        return await this.registerNamespace(name);
+        return await this.registerNamespace(name, parentName);
     }
 
-    public async registerNamespace(name: string): Promise<Object>
+    public async registerNamespace(name: string, parentName: string): Promise<Object>
     {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
@@ -107,13 +119,25 @@ export default class extends BaseCommand {
         const bytes = nacl_catapult.randomBytes(8);
         const nonce = uint64_t.fromBytes(bytes);
         const mosId = mosaicId(nonce, convert.hexToUint8(account.publicKey));
+        const parent = parentName.length ? parentName : new NamespaceId([0, 0]);
 
-        const registerTx = RegisterNamespaceTransaction.createRootNamespace(
-            Deadline.create(),
-            name,
-            UInt64.fromUint(1000),
-            NetworkType.MIJIN_TEST
-        );
+        let registerTx;
+        if (parentName.length) {
+            registerTx = RegisterNamespaceTransaction.createSubNamespace(
+                Deadline.create(),
+                name,
+                parentName,
+                NetworkType.MIJIN_TEST
+            );
+        }
+        else {
+            registerTx = RegisterNamespaceTransaction.createRootNamespace(
+                Deadline.create(),
+                name,
+                UInt64.fromUint(1000),
+                NetworkType.MIJIN_TEST
+            );
+        }
 
         const signedTransaction = account.sign(registerTx);
 
