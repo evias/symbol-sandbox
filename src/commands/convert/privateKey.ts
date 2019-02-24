@@ -19,15 +19,15 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
+    Account,
     Address,
-    NetworkType
+    NetworkType,
 } from 'nem2-sdk';
 
 import {
     convert,
     mosaicId,
     uint64 as uint64_t,
-    KeyPair
 } from "nem2-library";
 
 import {OptionsResolver} from '../../options-resolver';
@@ -64,18 +64,18 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid input');
         }
 
-        let keypair = KeyPair.createKeyPairFromPrivateKeyString(privateKey);
-        addr = Address.createFromPublicKey(keypair.publicKey, NetworkType.MIJIN_TEST);
+        let account = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
+        addr = Address.createFromPublicKey(account.publicKey, NetworkType.MIJIN_TEST);
 
         let text = '';
         text += chalk.green('Input:\t') + chalk.bold(privateKey) + '\n';
         text += '-'.repeat(20) + '\n\n';
-        text += 'Private Key:\t' + keypair.privateKey + '\n';
-        text += 'Public Key:\t' + keypair.publicKey + '\n';
-        text += 'Mijin:\t\t' + Address.createFromPublicKey(keypair.publicKey, NetworkType.MIJIN).plain() + '\n';
-        text += 'Mijin Test:\t' + Address.createFromPublicKey(keypair.publicKey, NetworkType.MIJIN_TEST).plain() + '\n';
-        text += 'Mainnet:\t' + Address.createFromPublicKey(keypair.publicKey, NetworkType.MAIN_NET).plain() + '\n';
-        text += 'Testnet:\t' + Address.createFromPublicKey(keypair.publicKey, NetworkType.TEST_NET).plain() + '\n';
+        text += 'Private Key:\t' + account.privateKey + '\n';
+        text += 'Public Key:\t' + account.publicKey + '\n';
+        text += 'Mijin:\t\t' + Address.createFromPublicKey(account.publicKey, NetworkType.MIJIN).plain() + '\n';
+        text += 'Mijin Test:\t' + Address.createFromPublicKey(account.publicKey, NetworkType.MIJIN_TEST).plain() + '\n';
+        text += 'Mainnet:\t' + Address.createFromPublicKey(account.publicKey, NetworkType.MAIN_NET).plain() + '\n';
+        text += 'Testnet:\t' + Address.createFromPublicKey(account.publicKey, NetworkType.TEST_NET).plain() + '\n';
 
         console.log(text);
     }

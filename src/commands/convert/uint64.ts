@@ -33,7 +33,7 @@ import {BaseCommand, BaseOptions} from '../../base-command';
 export class CommandOptions extends BaseOptions {
     @option({
         flag: 'i',
-        description: 'Number(s) to convert',
+        description: 'Number to convert. Ex. : "[1234,0]", 1234, 0x1234',
     })
     input: string;
 }
@@ -50,35 +50,48 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
         let input;
+        let parsed;
+        let uint64;
         try {
             input = OptionsResolver(options,
                 'input',
                 () => { return ''; },
                 'Enter a number or array of number in JSON format: ');
 
-            if (typeof input === "string") {
-                const parsed = JSON.parse(input);
+            if (typeof input === "string" && 0 === input.indexOf('[')) {
+                parsed = JSON.parse(input);
                 input = parsed;
             }
-        } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid input');
-        }
+            else if (typeof input === "string" && 0 === input.indexOf('0x')) {
+                parsed = input.replace(/^0x/, '');
+            }
+            else if (typeof input === "string") {
+                parsed = parseInt(input, 10);
+            }
 
-        let uint64;
-        if (typeof input === "object") {
-            uint64 = new UInt64(input);
-        }
-        else if (typeof input === "number") {
-            uint64 = UInt64.fromUint(input);
+            if (typeof parsed === "object") {
+                uint64 = new UInt64(parsed);
+            }
+            else if (typeof parsed === "number") {
+                uint64 = UInt64.fromUint(parsed);
+            }
+            else if (typeof parsed === "string") {
+                uint64 = new UInt64(uint64_t.fromHex(parsed));
+            }
+        } catch (err) {
+            console.log(err, options);
+            throw new ExpectedError('Enter a valid input');
         }
 
         let text;
         text += chalk.green('Input:\t') + chalk.bold(input) + '\n';
         text += '-'.repeat(20) + '\n\n';
-        text += 'UInt64:\t\t' + JSON.stringify(uint64.toDTO()) + '\n';
-        text += 'Number:\t\t' + uint64.compact() + '\n';
-        text += 'Hexadecimal:\t' + uint64_t.toHex(uint64.toDTO()) + '\n';
+        text += 'UInt64:\t\t\t' + JSON.stringify(uint64.toDTO()) + '\n';
+        text += 'UInt64 (base16):\t[' + 
+            '0x' + uint64.lower.toString(16).toUpperCase() + ', ' +
+            '0x' + uint64.higher.toString(16).toUpperCase() + ']\n';
+        text += 'Number:\t\t\t' + uint64.compact() + '\n';
+        text += 'Hexadecimal:\t\t0x' + uint64_t.toHex(uint64.toDTO()) + '\n';
         console.log(text);
     }
 
