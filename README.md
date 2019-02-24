@@ -44,13 +44,13 @@ Enter a public key: 33F0E2685732AE9E202F92B2B93A525BF77C4C14BBA22D088926BA8A7FD0
 Cow network upgrade tester (transaction type tester)
 
 ```bash
-$ ./nem2-sandbox cow transfer
-$ ./nem2-sandbox cow hashlock
-$ ./nem2-sandbox cow aggregate
-$ ./nem2-sandbox cow mosaicDefinition
-$ ./nem2-sandbox cow registerNamespace -n namespace
-$ ./nem2-sandbox cow mosaicAlias
-$ ./nem2-sandbox cow addressAlias
+$ ./nem2-sandbox transaction transfer
+$ ./nem2-sandbox transaction hashlock
+$ ./nem2-sandbox transaction aggregate
+$ ./nem2-sandbox transaction mosaicDefinition
+$ ./nem2-sandbox transaction registerNamespace -n namespace
+$ ./nem2-sandbox transaction mosaicAlias
+$ ./nem2-sandbox transaction addressAlias
 ```
 
 ## Changelog

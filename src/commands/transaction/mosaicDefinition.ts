@@ -107,7 +107,7 @@ export default class extends BaseCommand {
                 transferable: true,
                 levyMutable: false,
                 divisibility: 3,
-                duration: UInt64.fromUint(1000),
+                duration: UInt64.fromUint(1000000), // 1'000'000 blocks
             }),
             NetworkType.MIJIN_TEST
         );
