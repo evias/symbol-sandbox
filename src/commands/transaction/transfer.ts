@@ -35,7 +35,7 @@ import {
     TransactionHttp,
     TransferTransaction,
     LockFundsTransaction,
-    XEM,
+    NetworkCurrencyMosaic,
     PublicAccount,
     TransactionType,
     Listener,
@@ -66,7 +66,7 @@ export class CommandOptions extends BaseOptions {
 }
 
 @command({
-    description: 'Check for cow compatibility of TransferTransaction',
+    description: 'Send TransferTransaction',
 })
 export default class extends BaseCommand {
 
@@ -91,7 +91,7 @@ export default class extends BaseCommand {
     {
         // TEST 2: send transfer
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(XEM.MOSAIC_ID, UInt64.fromUint(1)));
+        mosaics.push(new Mosaic(NetworkCurrencyMosaic.MOSAIC_ID, UInt64.fromUint(1)));
 
         const account   = this.getAccount("tester1");
         const message   = PlainMessage.create("Testing simple transfer");

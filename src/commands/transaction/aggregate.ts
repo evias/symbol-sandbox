@@ -35,7 +35,7 @@ import {
     TransactionHttp,
     TransferTransaction,
     LockFundsTransaction,
-    XEM,
+    NetworkCurrencyMosaic,
     PublicAccount,
     TransactionType,
     Listener,
@@ -92,7 +92,7 @@ export default class extends BaseCommand {
         const account = this.getAccount("tester1");
 
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(XEM.MOSAIC_ID, UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(NetworkCurrencyMosaic.MOSAIC_ID, UInt64.fromUint(10)));
 
         // TEST 3: send mosaic creation transaction
         const fundsTx1 = TransferTransaction.create(

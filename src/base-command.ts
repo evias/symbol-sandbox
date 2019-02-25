@@ -24,7 +24,7 @@ export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
 
     public endpointUrl = "http://localhost:3000";
-    private accounts = {
+    protected accounts = {
         "tester1": {
             "address": "SACYZJLLP6OCY3KF3TTJRVE4W3MLNP5BQP75NKJC",
             "privateKey": ""},

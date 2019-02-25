@@ -36,7 +36,7 @@ import {
     TransactionHttp,
     TransferTransaction,
     LockFundsTransaction,
-    XEM,
+    NetworkCurrencyMosaic,
     PublicAccount,
     TransactionType,
     Listener,

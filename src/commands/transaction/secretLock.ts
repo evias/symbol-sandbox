@@ -35,7 +35,7 @@ import {
     TransactionHttp,
     TransferTransaction,
     LockFundsTransaction,
-    XEM,
+    NetworkCurrencyMosaic,
     PublicAccount,
     TransactionType,
     Listener,
@@ -134,7 +134,7 @@ export default class extends BaseCommand {
         // TEST: send register namespace transaction
         const secretLockTx = SecretLockTransaction.create(
             Deadline.create(),
-            XEM.createRelative(5),
+            NetworkCurrencyMosaic.createRelative(5),
             UInt64.fromUint(10),
             HashType.Op_Sha3_256,
             secret,

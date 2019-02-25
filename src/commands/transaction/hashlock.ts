@@ -35,7 +35,7 @@ import {
     TransactionHttp,
     TransferTransaction,
     LockFundsTransaction,
-    XEM,
+    NetworkCurrencyMosaic,
     PublicAccount,
     TransactionType,
     Listener,
@@ -109,10 +109,10 @@ export default class extends BaseCommand {
 
             const signedTransaction = account.sign(aggregateTx);
 
-            // create lock funds of 10 XEM for the aggregate transaction
+            // create lock funds of 10 NetworkCurrencyMosaic for the aggregate transaction
             const lockFundsTransaction = LockFundsTransaction.create(
                 Deadline.create(),
-                XEM.createRelative(10),
+                NetworkCurrencyMosaic.createRelative(10),
                 UInt64.fromUint(1000),
                 signedTransaction,
                 NetworkType.MIJIN_TEST,
