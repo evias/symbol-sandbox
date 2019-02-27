@@ -91,10 +91,8 @@ export default class extends BaseCommand {
     public async sendTransferTo(recipient: Address): Promise<Object>
     {
         // TEST 2: send transfer with alias `cat.currency`
-        const namespaceId   = new NamespaceId('cat.currency');
-
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(namespaceId, UInt64.fromUint(10)));
+        mosaics.push(NetworkCurrencyMosaic.createAbsolute(10));
 
         const account   = this.getAccount("tester1");
         const message   = PlainMessage.create("Testing simple transfer");
