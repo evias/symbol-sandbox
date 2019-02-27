@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.5
+- Added use of NetworkCurrencyMosaic
+- Fixed send by alias
+- Added reader `nem2-sandbox reader lastBlock`
+- Added reader `nem2-sandbox reader readMosaicAlias`
+- Fixed Private Key reader
+
 ## v0.0.4
 
 - Added separate listeners for block/addresses
