@@ -115,10 +115,6 @@ export default class extends BaseCommand {
         const account = this.getAccount("tester1");
 
         // TEST: send register namespace transaction
-
-        const bytes = nacl_catapult.randomBytes(8);
-        const nonce = uint64_t.fromBytes(bytes);
-        const mosId = mosaicId(nonce, convert.hexToUint8(account.publicKey));
         const parent = parentName.length ? parentName : new NamespaceId([0, 0]);
 
         let registerTx;

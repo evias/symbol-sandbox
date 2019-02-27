@@ -95,28 +95,12 @@ export default class extends BaseCommand {
         text += '-'.repeat(20) + '\n\n';
 
         const namespaceId = new NamespaceId(namespaceName);
-        const observer = observableFrom(namespaceHttp.getLinkedAddress(namespaceId)).pipe(
-            combineLatest(observableFrom(namespaceHttp.getLinkedMosaicId(namespaceId))),
-            catchError<any, never>((err) => { throw err.toString(); }),
-        );
+        const observer = namespaceHttp.getLinkedMosaicId(namespaceId).subscribe((apiResponses) => {
 
-        let counter = 1;
-        observer.subscribe((apiResponses) => {
-
-            let address = apiResponses[0] as Address || 'None';
-            let mosaicId = apiResponses[1] as MosaicId || 'None';
-
-            if (address instanceof Address) {
-                address = address.plain();
-            }
-
-            if (mosaicId instanceof MosaicId) {
-                mosaicId = mosaicId.toHex();
-            }
+            let mosaicId = apiResponses as MosaicId;
 
             text += 'Namespace:\t' + chalk.bold(namespaceId.fullName)+ '\n';
-            text += 'Address:\t'   + chalk.bold(address) + '\n';
-            text += 'MosaicId:\t'  + chalk.bold(mosaicId) + '\n';
+            text += 'MosaicId:\t'  + chalk.bold(mosaicId.id.toHex()) + ' [' + mosaicId.id.lower + ', ' + mosaicId.id.higher + ']' + '\n';
 
             console.log(text);
         }, 
