@@ -28,6 +28,7 @@ import {
     NamespaceHttp,
     MosaicView,
     MosaicInfo,
+    MosaicNonce,
     Address,
     Deadline,
     Mosaic,
@@ -91,14 +92,13 @@ export default class extends BaseCommand {
         // TEST: send mosaic creation transaction with supply change in aggregate
 
         // STEP 1: MosaicDefinition
-        const bytes = nacl_catapult.randomBytes(4);
-        const nonce = new Uint8Array(bytes);
-        const mosId = mosaicId(nonce, convert.hexToUint8(account.publicKey));
+        const nonce = MosaicNonce.createRandom();
+        const mosId = MosaicId.createFromNonce(nonce, account.publicAccount);
 
         const createTx = MosaicDefinitionTransaction.create(
             Deadline.create(),
             nonce,
-            new UInt64(mosId),
+            mosId,
             MosaicProperties.create({
                 supplyMutable: true,
                 transferable: true,

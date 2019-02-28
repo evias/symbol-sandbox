@@ -25,10 +25,10 @@ import {
     MosaicService,
     AccountHttp,
     MosaicHttp,
+    NamespaceId,
     NamespaceHttp,
     MosaicView,
     MosaicInfo,
-    MosaicNonce,
     Address,
     Deadline,
     Mosaic,
@@ -42,10 +42,8 @@ import {
     Listener,
     EmptyMessage,
     AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType
+    MosaicAliasTransaction,
+    AliasActionType
 } from 'nem2-sdk';
 
 import {
@@ -61,13 +59,18 @@ import {BaseCommand, BaseOptions} from '../../base-command';
 export class CommandOptions extends BaseOptions {
     @option({
         flag: 'n',
-        description: 'Mosaic Name',
+        description: 'Namespace ID (JSON Uint64)',
     })
-    name: string;
+    @option({
+        flag: 'm',
+        description: 'Mosaic ID (JSON Uint64)',
+    })
+    mosaicId: string;
+    namespaceId: string;
 }
 
 @command({
-    description: 'Check for cow compatibility of MosaicDefinition',
+    description: 'Check for cow compatibility of MosaicAliasTransaction',
 })
 export default class extends BaseCommand {
 
@@ -78,52 +81,69 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
 
+        let namespaceId;
+        try {
+            namespaceId = OptionsResolver(options,
+                'namespaceId',
+                () => { return ''; },
+                'Enter a namespaceId: ');
+        } catch (err) {
+            console.log(options);
+            throw new ExpectedError('Enter a valid namespaceId (Array JSON ex: "[33347626, 3779697293]")');
+        }
+
+        let mosaicId;
+        try {
+            mosaicId = OptionsResolver(options,
+                'mosaicId',
+                () => { return ''; },
+                'Enter a mosaicId: ');
+        } catch (err) {
+            console.log(options);
+            throw new ExpectedError('Enter a valid mosaicId (Array JSON ex: "[664046103, 198505464]")');
+        }
+
         // add a block monitor
         this.monitorBlocks();
 
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
-        return await this.createMosaic();
+        return await this.removeMosaicAlias(namespaceId, mosaicId);
     }
 
-    public async createMosaic(): Promise<Object>
+    public async removeMosaicAlias(nsIdJSON: string, mosIdJSON: string): Promise<Object>
     {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
 
-        // TEST: send mosaic creation transaction
+        // TEST: send mosaic alias transaction
 
-        // STEP 1: MosaicDefinition
-        const nonce = MosaicNonce.createRandom();
-        const mosId = MosaicId.createFromNonce(nonce, account.publicAccount);
+        const actionType  = AliasActionType.Unlink;
+        const namespaceId = JSON.parse(nsIdJSON);
+        const mosaicId    = JSON.parse(mosIdJSON); 
 
-        const createTx = MosaicDefinitionTransaction.create(
+        const aliasTx = MosaicAliasTransaction.create(
             Deadline.create(),
-            nonce,
-            mosId,
-            MosaicProperties.create({
-                supplyMutable: true,
-                transferable: true,
-                levyMutable: false,
-                divisibility: 3,
-                duration: UInt64.fromUint(1000000), // 1'000'000 blocks
-            }),
+            actionType,
+            new NamespaceId(namespaceId),
+            new MosaicId(mosaicId),
             NetworkType.MIJIN_TEST
         );
 
-        const signedCreateTransaction = account.sign(createTx);
+        const signedTransaction = account.sign(aliasTx);
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);
-        return transactionHttp.announce(signedCreateTransaction).subscribe(() => {
-            console.log('MosaicDefinition announced correctly');
-            console.log('Hash:   ', signedCreateTransaction.hash);
-            console.log('Signer: ', signedCreateTransaction.signer);
+        return transactionHttp.announce(signedTransaction).subscribe(() => {
+            console.log('MosaicAlias announced correctly');
+            console.log('Hash:   ', signedTransaction.hash);
+            console.log('Signer: ', signedTransaction.signer);
+            console.log("");
 
         }, (err) => {
             let text = '';
-            text += 'createMosaic() MosaicDefinition - Error';
+            text += 'removeMosaicAlias() - Error';
             console.log(text, err.response !== undefined ? err.response.text : err);
         });
     }

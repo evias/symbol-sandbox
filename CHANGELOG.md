@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.6
+
+- Added `nem2-sandbox reader mosaicAlias`
+- Added `nem2-sandbox reader addressAlias`
+- Added `nem2-sandbox transaction transferAlias`
+- Added `nem2-sandbox transaction unlinkMosaicAlias`
+- Added `nem2-sandbox transaction unlinkAddressAlias`
+- Fíxed aggregateMosaicCreation
+- Fixed mosaicDefinition
+
 ## v0.0.5
 - Added use of NetworkCurrencyMosaic
 - Fixed send by alias

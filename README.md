@@ -57,6 +57,7 @@ $ ./nem2-sandbox transaction addressAlias
 
 Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
 
+- [0.0.6](CHANGELOG.md#v006) - 2019-02-28
 - [0.0.5](CHANGELOG.md#v005) - 2019-02-27
 - [0.0.4](CHANGELOG.md#v004) - 2019-02-23
 - [0.0.3](CHANGELOG.md#v003) - 2019-02-18
