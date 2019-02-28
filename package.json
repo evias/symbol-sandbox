@@ -4,7 +4,7 @@
     "version": "0.0.6",
     "author": "Grégory Saive <greg@evias.be>",
     "description": "a simple sandbox to work with nem2-sdk-typescript-javascript",
-    "license": "MIT",
+    "license": "ApacheV2",
     "engines": {
         "node": ">=0.10"
     },
