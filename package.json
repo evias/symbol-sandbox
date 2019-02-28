@@ -48,5 +48,10 @@
     "main": "index.js",
     "bin": {
         "nem2-sandbox": "./bin/nem2-sandbox"
+    },
+    "bugs": "https://github.com/evias/nem2-sandbox/issues",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/evias/nem2-sandbox.git"
     }
 }
