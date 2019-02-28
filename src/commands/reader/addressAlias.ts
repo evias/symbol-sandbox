@@ -53,7 +53,7 @@ export class CommandOptions extends BaseOptions {
 }
 
 @command({
-    description: 'Read latest block',
+    description: 'Read address alias',
 })
 export default class extends BaseCommand {
 
@@ -95,12 +95,12 @@ export default class extends BaseCommand {
         text += '-'.repeat(20) + '\n\n';
 
         const namespaceId = new NamespaceId(namespaceName);
-        const observer = namespaceHttp.getLinkedMosaicId(namespaceId).subscribe((apiResponses) => {
+        const observer = namespaceHttp.getLinkedAddress(namespaceId).subscribe((apiResponses) => {
 
-            let mosaicId = apiResponses as MosaicId;
+            let address = apiResponses as Address;
 
             text += 'Namespace:\t' + chalk.bold(namespaceId.fullName)+ '\n';
-            text += 'MosaicId:\t'  + chalk.bold(mosaicId.id.toHex()) + ' [' + mosaicId.id.lower + ', ' + mosaicId.id.higher + ']' + '\n';
+            text += 'MosaicId:\t'  + chalk.bold(address.plain()) + '\n';
 
             console.log(text);
         }, 
