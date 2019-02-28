@@ -26,6 +26,7 @@ import {
     AccountHttp,
     MosaicHttp,
     NamespaceHttp,
+    NamespaceId,
     MosaicView,
     MosaicInfo,
     Address,
@@ -101,7 +102,9 @@ export default class extends BaseCommand {
         );
 
         const accountHttp = new AccountHttp(this.endpointUrl);
-        return accountHttp.getAccountInfo(recipient).subscribe((accountInfo) => {
+        const namespaceHttp = new NamespaceHttp(this.endpointUrl);
+
+        return accountHttp.getAccountInfo(recipient).subscribe(async (accountInfo) => {
             const aggregateTx = AggregateTransaction.createBonded(
                 Deadline.create(),
                 [fundsTx.toAggregate(accountInfo.publicAccount)],
@@ -109,10 +112,13 @@ export default class extends BaseCommand {
 
             const signedTransaction = account.sign(aggregateTx);
 
+            // @FIX catapult-server@0.3.0.2 bug with HashLock.mosaics containing namespaceId
+            const mosaicId = await namespaceHttp.getLinkedMosaicId(new NamespaceId('cat.currency')).toPromise();
+console.log("Got mosaicId: ", mosaicId);
             // create lock funds of 10 NetworkCurrencyMosaic for the aggregate transaction
             const lockFundsTransaction = LockFundsTransaction.create(
                 Deadline.create(),
-                NetworkCurrencyMosaic.createRelative(10),
+                new Mosaic(mosaicId, UInt64.fromUint(10000000)),
                 UInt64.fromUint(1000),
                 signedTransaction,
                 NetworkType.MIJIN_TEST,

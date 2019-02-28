@@ -98,13 +98,13 @@ export default class extends BaseCommand {
         const createTx = MosaicDefinitionTransaction.create(
             Deadline.create(),
             nonce,
-            UInt64.fromUint(mosId),
+            new UInt64(mosId),
             MosaicProperties.create({
                 supplyMutable: true,
-                transferable: false,
+                transferable: true,
                 levyMutable: false,
                 divisibility: 3,
-                duration: UInt64.fromUint(1000),
+                duration: UInt64.fromUint(1000000), // 1'000'000 blocks
             }),
             NetworkType.MIJIN_TEST
         );
