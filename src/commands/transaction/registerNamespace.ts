@@ -130,7 +130,7 @@ export default class extends BaseCommand {
             registerTx = RegisterNamespaceTransaction.createRootNamespace(
                 Deadline.create(),
                 name,
-                UInt64.fromUint(1000), // 1'000'000 blocks
+                UInt64.fromUint(100000), // 100'000 blocks
                 NetworkType.MIJIN_TEST
             );
         }

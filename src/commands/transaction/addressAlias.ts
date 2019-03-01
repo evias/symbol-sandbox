@@ -59,7 +59,7 @@ import {BaseCommand, BaseOptions} from '../../base-command';
 export class CommandOptions extends BaseOptions {
     @option({
         flag: 'n',
-        description: 'Namespace ID (JSON Uint64)',
+        description: 'Namespace Name',
     })
     namespaceId: string;
 }
@@ -76,15 +76,15 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
 
-        let namespaceId;
+        let namespaceName;
         try {
-            namespaceId = OptionsResolver(options,
-                'namespaceId',
+            namespaceName = OptionsResolver(options,
+                'namespaceName',
                 () => { return ''; },
-                'Enter a namespaceId: ');
+                'Enter a namespaceName: ');
         } catch (err) {
             console.log(options);
-            throw new ExpectedError('Enter a valid namespaceId (Array JSON ex: "[33347626, 3779697293]")');
+            throw new ExpectedError('Enter a valid namespaceName (Ex: "cat.currency")');
         }
 
         // add a block monitor
@@ -93,22 +93,22 @@ export default class extends BaseCommand {
         const address = this.getAddress("tester1");
         this.monitorAddress(address.plain());
 
-        return await this.createAddressAlias(namespaceId, address);
+        return await this.createAddressAlias(namespaceName, address);
     }
 
-    public async createAddressAlias(nsIdJSON: string, address: Address): Promise<Object>
+    public async createAddressAlias(namespace: string, address: Address): Promise<Object>
     {
         const account = this.getAccount("tester1");
 
         // TEST: send address alias transaction
 
         const actionType  = AliasActionType.Link;
-        const namespaceId = JSON.parse(nsIdJSON);
+        const namespaceId = new NamespaceId(namespace);
 
         const aliasTx = AddressAliasTransaction.create(
             Deadline.create(),
             actionType,
-            new NamespaceId(namespaceId),
+            namespaceId,
             address,
             NetworkType.MIJIN_TEST
         );

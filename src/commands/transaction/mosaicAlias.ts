@@ -59,7 +59,7 @@ import {BaseCommand, BaseOptions} from '../../base-command';
 export class CommandOptions extends BaseOptions {
     @option({
         flag: 'n',
-        description: 'Namespace ID (JSON Uint64)',
+        description: 'Namespace name',
     })
     @option({
         flag: 'm',
@@ -81,15 +81,15 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
 
-        let namespaceId;
+        let namespaceName;
         try {
-            namespaceId = OptionsResolver(options,
-                'namespaceId',
+            namespaceName = OptionsResolver(options,
+                'namespaceName',
                 () => { return ''; },
-                'Enter a namespaceId: ');
+                'Enter a namespaceName: ');
         } catch (err) {
             console.log(options);
-            throw new ExpectedError('Enter a valid namespaceId (Array JSON ex: "[33347626, 3779697293]")');
+            throw new ExpectedError('Enter a valid namespaceName (Ex: "cat.currency")');
         }
 
         let mosaicId;
@@ -109,10 +109,10 @@ export default class extends BaseCommand {
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
-        return await this.createMosaicAlias(namespaceId, mosaicId);
+        return await this.createMosaicAlias(namespaceName, mosaicId);
     }
 
-    public async createMosaicAlias(nsIdJSON: string, mosIdJSON: string): Promise<Object>
+    public async createMosaicAlias(namespace: string, mosIdJSON: string): Promise<Object>
     {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
@@ -120,13 +120,13 @@ export default class extends BaseCommand {
         // TEST: send mosaic alias transaction
 
         const actionType  = AliasActionType.Link;
-        const namespaceId = JSON.parse(nsIdJSON);
+        const namespaceId = new NamespaceId(namespace);
         const mosaicId    = JSON.parse(mosIdJSON); 
 
         const aliasTx = MosaicAliasTransaction.create(
             Deadline.create(),
             actionType,
-            new NamespaceId(namespaceId),
+            namespaceId,
             new MosaicId(mosaicId),
             NetworkType.MIJIN_TEST
         );

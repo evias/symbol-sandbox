@@ -103,14 +103,14 @@ export default class extends BaseCommand {
             nonce,
             mosId,
             MosaicProperties.create({
-                supplyMutable: true,
+                supplyMutable: false,
                 transferable: true,
                 levyMutable: false,
                 divisibility: 3,
                 duration: UInt64.fromUint(1000000), // 1'000'000 blocks
             }),
             NetworkType.MIJIN_TEST
-        );
+        );  
 
         const signedCreateTransaction = account.sign(createTx);
 
