@@ -69,12 +69,6 @@ export class CommandOptions extends BaseOptions {
         description: 'Enter a secret',
     })
     secret: string;
-
-    @option({
-        flag: 'a',
-        description: 'Enter a recipient address',
-    })
-    address: string;
 }
 
 @command({
@@ -118,11 +112,11 @@ export default class extends BaseCommand {
          * secret = sha3_256("M4G1C " || proof || " M4G1C")
          * ```
          */
-        const proof = sha3_256(convert.utf8ToHex(secret)).toUpperCase();
-        secret = sha3_256("M4G1C " + secret + " M4G1C").toUpperCase();
+        const proof = convert.utf8ToHex(secret).toUpperCase();
+        secret = sha3_256(secret).toUpperCase();
 
         // Step 1: Send secret lock transaction
-        await this.sendSecretLock(secret, proof, recipient);
+        return await this.sendSecretLock(secret, proof, recipient);
     }
 
     public async sendSecretLock(secret: string, proof: string, recipient: Address): Promise<Object>
