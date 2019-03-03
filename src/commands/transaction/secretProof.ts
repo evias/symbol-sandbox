@@ -69,23 +69,11 @@ export class CommandOptions extends BaseOptions {
         description: 'Enter a secret',
     })
 
-    @option({
-        flag: 'd',
-        description: 'Enter a duration for the lock',
-    })
-
-    @option({
-        flag: 'a',
-        description: 'Enter an amount',
-    })
-
     secret: string;
-    duration: string;
-    amount: string;
 }
 
 @command({
-    description: 'Send a SecretLockTransaction for said secret, duration and amount',
+    description: 'Send a SecretProofTransaction for given secret',
 })
 export default class extends BaseCommand {
 
@@ -106,26 +94,12 @@ export default class extends BaseCommand {
                 'Enter a secret: ');
         } catch (err) { throw new ExpectedError('Enter a valid secret'); }
 
-        try {
-            duration = OptionsResolver(options, 'duration', () => { return ''; }, 'Enter a duration: ');
-            duration = this.readUIntArgument(duration);
-        } catch (err) { throw new ExpectedError('Please enter a valid duration'); }
-
-        try {
-            amount = OptionsResolver(options, 'amount', () => { return ''; }, 'Enter an absolute amount (smallest unit): ');
-            amount = this.readUIntArgument(amount);
-        } catch (err) { throw new ExpectedError('Please enter a valid amount'); }
-
         // add a block monitor
         this.monitorBlocks();
 
-        // monitor for lock
-        const address = this.getAddress("tester1");
+        // monitor for lock/proof
+        const address = this.getAddress("tester2");
         this.monitorAddress(address.plain());
-
-        // monitor for proof
-        const recipient = this.getAddress("tester2");
-        // this.monitorAddress(recipient.plain());
 
         // create proof and secret
 
@@ -138,40 +112,36 @@ export default class extends BaseCommand {
         const proof = convert.utf8ToHex(secret).toUpperCase();
         secret = sha3_256(secret).toUpperCase();
 
-        // Send secret lock transaction
-        return await this.sendSecretLock(recipient, duration, amount, secret);
+        // Send secret proof transaction
+        return await this.sendSecretProof(secret, proof);
     }
 
-    public async sendSecretLock(
-        recipient: Address,
-        duration: UInt64,
-        amount: UInt64,
-        secret: string
+    public async sendSecretProof(
+        secret: string,
+        proof: string,
     ): Promise<Object>
     {
-        // Secret is sent by tester1
-        const address = this.getAddress("tester1");
-        const account = this.getAccount("tester1");
+        // Proof is sent by tester2
+        const address = this.getAddress("tester2");
+        const account = this.getAccount("tester2");
 
-        const secretLockTx = SecretLockTransaction.create(
+        const secretProofTx = SecretProofTransaction.create(
             Deadline.create(),
-            NetworkCurrencyMosaic.createAbsolute(amount),
-            duration,
             HashType.Op_Sha3_256,
             secret,
-            recipient,
+            proof,
             NetworkType.MIJIN_TEST);
 
-        // Secret is sent by tester1
-        const signedTransaction = account.sign(secretLockTx);
+        // Proof is sent by tester2
+        const signedTransaction = account.sign(secretProofTx);
         const transactionHttp = new TransactionHttp(this.endpointUrl);
-        return transactionHttp.announce(signedTransaction).subscribe(async () => {
-            console.log('Announced secret lock transaction');
+        return transactionHttp.announce(signedTransaction).subscribe(() => {
+            console.log('Announced secret proof transaction');
             console.log('Hash:   ', signedTransaction.hash);
             console.log('Signer: ', signedTransaction.signer, '\n');
         }, (err) => {
             let text = '';
-            text += 'sendSecretLock() - Error';
+            text += 'sendSecretProof() - Error';
             console.log(text, err.response !== undefined ? err.response.text : err);
         });
     }

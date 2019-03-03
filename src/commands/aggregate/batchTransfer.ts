@@ -199,7 +199,7 @@ export default class extends BaseCommand {
         return transferTx.toAggregate(publicAccount);
     }
 
-    private readCSV(
+    protected readCSV(
         filePath: string
     ): Array<{address: string, amount: string, mosaic: string}>
     {
@@ -208,6 +208,11 @@ export default class extends BaseCommand {
         // read file content and process rows
         const fileCSV = fs.readFileSync(filePath, 'utf8');
         const rowsCSV = fileCSV.split('\n');
+
+        if (rowsCSV.length > 1000) {
+            throw new Error("File contains more than 1000 rows.");
+        }
+
         while (rowsCSV.length) {
             const row = rowsCSV.shift();
 

@@ -18,7 +18,13 @@
 import chalk from 'chalk';
 import {Command, ExpectedError, option, Options} from 'clime';
 import {Spinner} from 'cli-spinner';
-import {Account, Address, Listener, NetworkType} from 'nem2-sdk';
+import {
+    Account,
+    Address,
+    Listener,
+    NetworkType,
+    UInt64,
+} from 'nem2-sdk';
 
 export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
@@ -109,6 +115,18 @@ export abstract class BaseCommand extends Command {
     {
         this.listenerAddresses.close();
         this.listenerBlocks.close();
+    }
+
+    public readUIntArgument(
+        uintAsString: string
+    ): UInt64
+    {
+        if (uintAsString.indexOf('[') === 0) {
+            let asArray: Array<number> = JSON.parse(uintAsString);
+            return new UInt64(asArray);
+        }
+
+        return UInt64.fromUint(parseInt(uintAsString));
     }
 }
 
