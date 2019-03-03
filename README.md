@@ -41,22 +41,57 @@ $ ./nem2-sandbox convert address
 Enter a public key: 33F0E2685732AE9E202F92B2B93A525BF77C4C14BBA22D088926BA8A7FD0BE13
 ```
 
-Cow network upgrade tester (transaction type tester)
+Transaction broadcaster examples:
 
 ```bash
 $ ./nem2-sandbox transaction transfer
 $ ./nem2-sandbox transaction hashlock
 $ ./nem2-sandbox transaction aggregate
 $ ./nem2-sandbox transaction mosaicDefinition
+$ ./nem2-sandbox transaction mosaicSupply
 $ ./nem2-sandbox transaction registerNamespace -n namespace
 $ ./nem2-sandbox transaction mosaicAlias
 $ ./nem2-sandbox transaction addressAlias
+```
+
+## Aggregate Transaction Scenarios
+
+1) Create a new **named mosaic** on catapult network
+
+- Create a root namespace and necessary subnamespaces (RegisterNamespace)
+- Create a Mosaic with parameters from command line (MosaicDefinition)
+- Add supply to the created mosaic (MosaicSupplyChange)
+- Create a namespace alias for the created mosaic (MosaicAlias)
+
+```bash
+$ ./nem2-sandbox aggregate mosaicConfiguration -n evias.test.name -d 0 -s 1 -t 1 -i 1000
+```
+
+2) Send **batch transfers** from CSV input
+
+- Read a CSV file with columns: `address, amount, mosaic`
+- Each row in the CSV will be added as one TransferTransaction
+- Wrap all transfers into one aggregate transaction
+
+```bash
+$ export CSV_FILE=`pwd`/files/test.csv
+$ ./nem2-sandbox aggregate batchTransfer -f ${CSV_FILE}
+```
+
+3) Create *multiple levels* of **namespaces**
+
+```bash
+$ ./nem2-sandbox aggregate multiLevelNamespace evias.levels.tests
+$ ./nem2-sandbox aggregate multiLevelNamespace gregory.saive.handshakes
 ```
 
 ## Changelog
 
 Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
 
+- [0.0.9](CHANGELOG.md#v009) - 2019-03-03
+- [0.0.8](CHANGELOG.md#v008) - 2019-03-01
+- [0.0.7](CHANGELOG.md#v007) - 2019-03-01
 - [0.0.6](CHANGELOG.md#v006) - 2019-02-28
 - [0.0.5](CHANGELOG.md#v005) - 2019-02-27
 - [0.0.4](CHANGELOG.md#v004) - 2019-02-23

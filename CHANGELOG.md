@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## v0.0.9
+
+- Added `nem2-sandbox aggregate batchTransfer`
+- Added `nem2-sandbox aggregate multiLevelNamespace`
+- Added `nem2-sandbox aggregate mosaicConfiguration`
+- Added `nem2-sandbox aggregate mosaicDefinition`
+
+## v0.0.8
+
+- several bugfixes and re-organization
+
+## v0.0.7
+
+- bugfixes and added reader commands
+
 ## v0.0.6
 
 - Added `nem2-sandbox reader mosaicAlias`
