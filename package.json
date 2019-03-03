@@ -1,7 +1,7 @@
 {
     "name": "nem2-sandbox",
     "preferGlobal": true,
-    "version": "0.0.8-0",
+    "version": "0.0.9",
     "author": "Grégory Saive <greg@evias.be>",
     "description": "a simple sandbox to work with nem2-sdk-typescript-javascript",
     "license": "ApacheV2",
