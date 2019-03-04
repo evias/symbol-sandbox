@@ -135,7 +135,7 @@ export default class extends BaseCommand {
          * secret = sha3_256(secret)
          * ```
          */
-        const proof = convert.utf8ToHex(secret).toUpperCase();
+        const proof = convert.utf8ToHex(secret);
         secret = sha3_256(secret).toUpperCase();
 
         // Send secret lock transaction
