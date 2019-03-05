@@ -108,6 +108,24 @@ export abstract class BaseCommand extends Command {
                     console.log(msg, JSON.stringify(tx))
                 },
                 error => console.error(error));
+
+            // Monitor aggregate bonded transactions
+            this.listenerAddresses.aggregateBondedAdded(Address.createFromRawAddress(address))
+                .subscribe(tx => {
+                    let msg = chalk.yellow("[MONITOR] Aggregate Bonded TX: ");
+
+                    console.log(msg, JSON.stringify(tx))
+                },
+                error => console.error(error));
+
+            // Monitor cosignature transactions
+            this.listenerAddresses.cosignatureAdded(Address.createFromRawAddress(address))
+                .subscribe(tx => {
+                    let msg = chalk.yellow("[MONITOR] Cosignature TX: ");
+
+                    console.log(msg, JSON.stringify(tx))
+                },
+                error => console.error(error));
         });
     }
 
