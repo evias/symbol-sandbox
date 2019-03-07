@@ -93,7 +93,7 @@ export default class extends BaseCommand {
 
         // add a block monitor
         this.monitorBlocks();
-        this.monitorAddress(cosignatory.address.plain());
+        this.monitorAddress(this.getAddress("multisig1").plain());
         return await this.cosignMultisigTransaction(cosignatory);
     }
 
@@ -136,12 +136,11 @@ export default class extends BaseCommand {
                     console.log('Parent Hash: ', signedSignature.parentHash);
                     console.log('Signer:      ', signedSignature.signer, '\n');
 
-                    return transactionHttp.announceAggregateBondedCosignature(signedSignature)
+                    // announce cosignature
+                    return transactionHttp.announceAggregateBondedCosignature(signedSignature);
                 })
-            ).subscribe(announcedTransaction => {
-                console.log('Announced cosignature transaction', '\n');
-                console.log(announcedTransaction);
-
+            ).subscribe((announcedTransaction) => {
+                console.log(chalk.green('Announced cosignature transaction'), '\n');
                 return resolve(announcedTransaction);
             }, err => console.error(err));
         });

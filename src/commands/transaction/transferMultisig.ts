@@ -153,13 +153,15 @@ export default class extends BaseCommand {
         const transactionHttp = new TransactionHttp(this.endpointUrl);
 
         return new Promise(async (resolve, reject) => {
-            // announce and subscribe to errors
+            // announce lock funds and subscribe to errors
             transactionHttp
                 .announce(signedLockFundsTx)
                 .subscribe(x => {
                     console.log('Announced lock funds transaction');
                     console.log('Hash:   ', signedLockFundsTx.hash);
                     console.log('Signer: ', signedLockFundsTx.signer, '\n');
+                    console.log('');
+                    console.log('Waiting to be included in a block..');
                 }, err => console.error(err));
 
             // when the lock funds is confirmed, send the aggregate-bonded
@@ -167,8 +169,16 @@ export default class extends BaseCommand {
                 filter((transaction) =>
                         transaction.transactionInfo !== undefined
                     && transaction.transactionInfo.hash === signedLockFundsTx.hash),
-                mergeMap(ignored =>
-                    transactionHttp.announceAggregateBonded(signedMultisigTx))
+                mergeMap(ignored => {
+                    let text = chalk.green('LockFunds Confirmed!');
+                    console.log(text, '\n');
+
+                    // add address monitor
+                    this.monitorAddress(multisigAcct.address.plain());
+
+                    // announce multisig transaction
+                    return transactionHttp.announceAggregateBonded(signedMultisigTx);
+                })
             )
             .subscribe(announcedAggregateBonded => {
                 console.log('Announced aggregate bonded transaction');
