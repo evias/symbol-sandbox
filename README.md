@@ -89,6 +89,7 @@ $ ./nem2-sandbox aggregate multiLevelNamespace gregory.saive.handshakes
 
 Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
 
+- [0.1.0](CHANGELOG.md#v010) - 2019-03-08
 - [0.0.9](CHANGELOG.md#v009) - 2019-03-03
 - [0.0.8](CHANGELOG.md#v008) - 2019-03-01
 - [0.0.7](CHANGELOG.md#v007) - 2019-03-01

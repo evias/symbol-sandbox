@@ -32,13 +32,19 @@ export abstract class BaseCommand extends Command {
     public endpointUrl = "http://localhost:3000";
     protected accounts = {
         "tester1": {
-            "address": "SACYZJLLP6OCY3KF3TTJRVE4W3MLNP5BQP75NKJC",
+            "address": "SBXTSKD2FDOP4A37ANWSWCOKGPIBGYYK5U3CIYMZ",
             "privateKey": ""},
         "tester2": {
-            "address": "SDUFICQAIHN2VYORJILRQ5YXAERLJF5HDTPJNXVR",
+            "address": "SC3KUHEEBYHZL35OL6ST7KRMB6RTOEMP2J6UFM6S",
             "privateKey": ""},
         "tester3": {
-            "address": "SDAIUGSGF5R6O74FBSKLNIZZOIPCROFB23ELSQOY",
+            "address": "SD2AMYW6QRH2DQ6BCSMKDHKSL7PMEDOORXM73B7Q",
+            "privateKey": ""},
+        "tester4": {
+            "address": "SDBTF7Y63B4FONR6PFJ64BQA4EKRYB7CBTWEMONC",
+            "privateKey": ""},
+        "multisig1": {
+            "address": "SCDW6TN6OS7G3QOZZEMDMUGHOJSHM3XZC2WYFFDC",
             "privateKey": ""},
     };
 

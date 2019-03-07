@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.1.0
+
+- Added `nem2-sandbox transaction accountPropertyAddress`
+- Added `nem2-sandbox transaction accountPropertyEntityType`
+- Added `nem2-sandbox transaction accountPropertyMosaic`
+- Added `nem2-sandbox transaction convertMultisig`
+- Added `nem2-sandbox transaction transferMultisig`
+- Added `nem2-sandbox transaction cosignMultisig`
+- Fixed `nem2-sandbox transaction secretLock`
+- Fixed `nem2-sandbox transaction secretProof`
+
 ## v0.0.9
 
 - Added `nem2-sandbox aggregate batchTransfer`
