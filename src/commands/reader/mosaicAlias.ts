@@ -44,11 +44,11 @@ export class CommandOptions extends BaseOptions {
         flag: 'u',
         description: 'Endpoint URL (Ex.: "http://localhost:3000")',
     })
+    peerUrl: string;
     @option({
         flag: 'n',
         description: 'Namespace Name',
     })
-    peerUrl: string;
     namespaceName: string;
 }
 
