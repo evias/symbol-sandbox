@@ -20,8 +20,12 @@ import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
     Account,
+    AccountHttp,
     Address,
     MosaicId,
+    MosaicHttp,
+    MosaicService,
+    MosaicAmountView,
     NetworkType,
     NamespaceHttp,
     NamespaceId
@@ -34,7 +38,7 @@ import {
 } from "nem2-library";
 
 import {from as observableFrom, Observable, merge} from 'rxjs';
-import {combineLatest, catchError} from 'rxjs/operators';
+import {combineLatest, catchError, map, mergeMap} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
@@ -46,14 +50,14 @@ export class CommandOptions extends BaseOptions {
     })
     peerUrl: string;
     @option({
-        flag: 'n',
-        description: 'Namespace Name',
+        flag: 'a',
+        description: 'Address or Namespace Name',
     })
     namespaceName: string;
 }
 
 @command({
-    description: 'Read address alias',
+    description: 'Read address mosaic amounts',
 })
 export default class extends BaseCommand {
 
@@ -64,20 +68,20 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
         let peerUrl;
-        let namespaceName;
+        let account;
         try {
             peerUrl = OptionsResolver(options,
                 'peerUrl',
                 () => { return ''; },
                 'Enter a peerUrl: (Ex.: http://localhost:3000)');
 
-            namespaceName = OptionsResolver(options,
-                'namespaceName',
+            account = OptionsResolver(options,
+                'account',
                 () => { return ''; },
-                'Enter a namespaceName: (Ex.: evias)');
+                'Enter an address, a public key or a namespace name: ');
 
-            if (!namespaceName.length) {
-                throw new Error("Namespace name is obligatory");
+            if (!account.length) {
+                throw new Error("Account is obligatory");
             }
         } catch (err) {
             console.log(options);
@@ -87,25 +91,39 @@ export default class extends BaseCommand {
         if (peerUrl.length) {
             this.endpointUrl = peerUrl;
         }
-
+        const accountHttp = new AccountHttp(this.endpointUrl);
+        const mosaicHttp  = new MosaicHttp(this.endpointUrl);
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
+        const mosaicService = new MosaicService(accountHttp, mosaicHttp);
+
+        // read address
+        let address;
+        if (account.length === 64) {
+            address = Address.createFromPublicKey(account, NetworkType.MIJIN_TEST);
+        } else if (account.length === 40 || account.length === 45) {
+            address = Address.createFromRawAddress(account);
+        } else {
+            address = await namespaceHttp.getLinkedAddress(new NamespaceId(account)).toPromise();
+        }
 
         let text = '';
-        text += chalk.green('Peer:\t') + chalk.bold(this.endpointUrl) + '\n';
+        text += chalk.green('Peer:\t  ') + chalk.bold(this.endpointUrl) + '\n';
+        text += chalk.green('Account: ') + chalk.bold(address.plain()) + '\n';
         text += '-'.repeat(20) + '\n\n';
+        console.log(text);
 
-        const namespaceId = new NamespaceId(namespaceName);
-        const observer = namespaceHttp.getLinkedAddress(namespaceId).subscribe((apiResponses) => {
+        mosaicService.mosaicsAmountViewFromAddress(address).subscribe(
+            (mosaics) => {
+                mosaics.map((mosaic) => {
+                    console.log(chalk.yellow('Id:\t') + chalk.bold(mosaic.fullName()));
+                    console.log(chalk.yellow('Amount:\t') + chalk.bold('' + mosaic.amount.compact())+ '\n');
+                });
+            },
+            (err) => {
+                console.error(err);
+            }
+        );
 
-            let address = apiResponses as Address;
-
-            text += 'Namespace:\t' + chalk.bold(namespaceId.fullName)+ '\n';
-            text += 'NamespaceId:\t' + chalk.bold(namespaceId.toHex())+ '\n';
-            text += 'MosaicId:\t'  + chalk.bold(address.plain()) + '\n';
-
-            console.log(text);
-        }, 
-        err => console.log("API Message: ", err));
 
     }
 

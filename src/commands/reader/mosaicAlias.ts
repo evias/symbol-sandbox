@@ -100,6 +100,7 @@ export default class extends BaseCommand {
             let mosaicId = apiResponses as MosaicId;
 
             text += 'Namespace:\t' + chalk.bold(namespaceId.fullName)+ '\n';
+            text += 'NamespaceId:\t' + chalk.bold(namespaceId.toHex())+ '\n';
             text += 'MosaicId:\t'  + chalk.bold(mosaicId.id.toHex()) + ' [' + mosaicId.id.lower + ', ' + mosaicId.id.higher + ']' + '\n';
 
             console.log(text);
