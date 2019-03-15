@@ -69,26 +69,26 @@ export class CommandOptions extends BaseOptions {
         flag: 'n',
         description: 'Mosaic name',
     })
+    name: string;
     @option({
         flag: 'd',
         description: 'Divisibility [0, 6]',
     })
+    divisibility: number;
     @option({
         flag: 's',
         description: 'Mutable supply Mosaic [0, 1]',
     })
+    supplyMutable: boolean;
     @option({
         flag: 't',
         description: 'Transferable Mosaic [0, 1]',
     })
+    transferable: boolean;
     @option({
         flag: 'i',
         description: 'Initial supply',
     })
-    name: string;
-    divisibility: number;
-    supplyMutable: boolean;
-    transferable: boolean;
     initialSupply: string;
 }
 
@@ -122,10 +122,12 @@ export default class extends BaseCommand {
 
         try {
             supplyMutable = OptionsResolver(options, 'supplyMutable', () => { return ''; }, 'Should the supply be mutable ? [1, 0] ');
+            supplyMutable = parseInt(supplyMutable) === 1;
         } catch (err) { throw new ExpectedError('Please enter 1 for mutable supply and 0 for immutable supply'); }
 
         try {
             transferable = OptionsResolver(options, 'transferable', () => { return ''; }, 'Should the mosaic be transferable ? [1, 0] ');
+            transferable = parseInt(transferable) === 1;
         } catch (err) { throw new ExpectedError('Please enter 1 for transferable and 0 for non-transferable'); }
 
         try {
@@ -301,19 +303,22 @@ export default class extends BaseCommand {
         // create nonce and mosaicId
         const nonce = MosaicNonce.createRandom();
         const mosId = MosaicId.createFromNonce(nonce, publicAccount);
+        const props = {
+            supplyMutable: supplyMutable,
+            transferable: transferable,
+            levyMutable: false,
+            divisibility: divisibility,
+            duration: UInt64.fromUint(1000000), // 1'000'000 blocks
+        };
 
         console.log('Step 2.1) Creating MosaicDefinitionTransaction with mosaicId: ' + JSON.stringify(mosId.id));
+        console.log('Step 2.2) Creating MosaicDefinitionTransaction with properties: ' + JSON.stringify(props));
+
         const createTx = MosaicDefinitionTransaction.create(
             Deadline.create(),
             nonce,
             mosId,
-            MosaicProperties.create({
-                supplyMutable: supplyMutable,
-                transferable: transferable,
-                levyMutable: false,
-                divisibility: divisibility,
-                duration: UInt64.fromUint(1000000), // 1'000'000 blocks
-            }),
+            MosaicProperties.create(props),
             NetworkType.MIJIN_TEST
         );
 

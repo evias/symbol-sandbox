@@ -18,9 +18,10 @@ Package licensed under [Apache v2.0](LICENSE) License.
 
 ## Donations / Pot de vin
 
-If you like the initiative, and for the sake of good mood, I recommend you take a few minutes to Donate a beer or Three [because belgians like that] by sending some XEM (or whatever Mosaic you think pays me a few beers someday!) to my Wallet:
+Donations can be made with cryptocurrencies and will be used for running the project!
 
-    NB72EM6TTSX72O47T3GQFL345AB5WYKIDODKPPYW
+    NEM:       NB72EM6TTSX72O47T3GQFL345AB5WYKIDODKPPYW
+    Bitcoin:   3EVqgUqYFRYbf9RjhyjBgKXcEwAQxhaf6o
 
 | Username | Role |
 | --- | --- |
@@ -89,6 +90,7 @@ $ ./nem2-sandbox aggregate multiLevelNamespace gregory.saive.handshakes
 
 Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
 
+- [0.1.1](CHANGELOG.md#v010) - 2019-03-15
 - [0.1.0](CHANGELOG.md#v010) - 2019-03-08
 - [0.0.9](CHANGELOG.md#v009) - 2019-03-03
 - [0.0.8](CHANGELOG.md#v008) - 2019-03-01

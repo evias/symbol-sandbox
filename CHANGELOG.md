@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.1.1
+
+- Added `nem2-sandbox reader mosaicAmountView`
+- Added `nem2-sandbox reader namespaceInfo`
+- Added `nem2-sandbox reader mosaicInfo`
+- Added `nem2-sandbox transaction transferToAlias`
+- Fixed multisignature (aggregate bonded) display
+
 ## v0.1.0
 
 - Added `nem2-sandbox transaction accountPropertyAddress`
