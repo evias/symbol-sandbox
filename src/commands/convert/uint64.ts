@@ -83,6 +83,20 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid input');
         }
 
+        let binary = [];
+        let uint8 = convert.hexToUint8(uint64_t.toHex(uint64.toDTO()));
+
+        uint8.forEach((byte) => {
+            const bits = byte.toString(2).split('');
+
+            // left-pad 0s
+            const pads = ('0'.repeat(8 - bits.length)).split('');
+            pads.forEach((zero) => {bits.unshift('0')});
+
+            // build 1000'0100 format
+            binary.push(bits.slice(0, 4).join('') + '\'' + bits.slice(4, 8).join(''));
+        });
+
         let text;
         text += chalk.green('Input:\t') + chalk.bold(input) + '\n';
         text += '-'.repeat(20) + '\n\n';
@@ -92,6 +106,13 @@ export default class extends BaseCommand {
             '0x' + uint64.higher.toString(16).toUpperCase() + ']\n';
         text += 'Number:\t\t\t' + uint64.compact() + '\n';
         text += 'Hexadecimal:\t\t0x' + uint64_t.toHex(uint64.toDTO()) + '\n';
+        text += 'UInt8:\t\t\t' + convert.hexToUint8(uint64_t.toHex(uint64.toDTO())).join(', ') + '\n';
+        text += 'Binary:\n' + '\n';
+
+        binary.forEach((byte, i) => {
+            text += '\t\t\tUInt8[' + i + ']: ' + byte + '\n';
+        });
+
         console.log(text);
     }
 
