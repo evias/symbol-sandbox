@@ -92,7 +92,14 @@ export default class extends BaseCommand {
     {
         // TEST 2: send transfer with alias `cat.currency`
         let mosaics: Mosaic[] = [];
-        mosaics.push(NetworkCurrencyMosaic.createAbsolute(10));
+
+        // read mosaic Id from namespace name
+        const namespaceHttp = new NamespaceHttp(this.endpointUrl);
+        const namespaceId = new NamespaceId('cat.currency');
+        const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
+
+        // attach mosaicId !
+        mosaics.push(new Mosaic(mosaicId, UInt64.fromUint(10)));
 
         const account   = this.getAccount("tester1");
         const message   = PlainMessage.create("Testing simple transfer");
