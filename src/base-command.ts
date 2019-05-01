@@ -65,7 +65,8 @@ export abstract class BaseCommand extends Command {
     }
 
     public getAddress(name: string): Address {
-        return Address.createFromRawAddress(this.accounts[name].address);
+        const acct = this.getAccount(name);
+        return Address.createFromPublicKey(acct.publicKey, NetworkType.MIJIN_TEST);
     }
 
     private getPrivateKey(name: string): string {
