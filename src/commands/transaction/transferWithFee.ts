@@ -48,13 +48,6 @@ import {
     NamespaceId
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -114,7 +107,7 @@ export default class extends BaseCommand {
             new UInt64([5000000, 0]), // set 5 `cat.currency` fee
         );
 
-        const signedTransaction = account.sign(transferTransaction);
+        const signedTransaction = account.sign(transferTransaction, this.generationHash);
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);

@@ -48,15 +48,9 @@ import {
     RegisterNamespaceTransaction,
     SecretLockTransaction,
     SecretProofTransaction,
-    HashType
+    HashType,
+    Convert as convert,
 } from 'nem2-sdk';
-
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t
-} from "nem2-library";
 
 import { sha3_256 } from 'js-sha3';
 
@@ -133,7 +127,7 @@ export default class extends BaseCommand {
             NetworkType.MIJIN_TEST);
 
         // Proof is sent by tester2
-        const signedTransaction = account.sign(secretProofTx);
+        const signedTransaction = account.sign(secretProofTx, this.generationHash);
         const transactionHttp = new TransactionHttp(this.endpointUrl);
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Announced secret proof transaction');

@@ -48,13 +48,6 @@ import {
     MosaicSupplyType
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -110,7 +103,7 @@ export default class extends BaseCommand {
                 [fundsTx.toAggregate(accountInfo.publicAccount)],
                 NetworkType.MIJIN_TEST, []);
 
-            const signedTransaction = account.sign(aggregateTx);
+            const signedTransaction = account.sign(aggregateTx, this.generationHash);
 
             // @FIX catapult-server@0.3.0.2 bug with HashLock.mosaics containing namespaceId
             const mosaicId = await namespaceHttp.getLinkedMosaicId(new NamespaceId('cat.currency')).toPromise();

@@ -55,13 +55,6 @@ import {
     InnerTransaction,
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 import fs = require('fs');
@@ -156,7 +149,7 @@ export default class extends BaseCommand {
             []
         );
 
-        const signedTransaction = account.sign(aggregateTx);
+        const signedTransaction = account.sign(aggregateTx, this.generationHash);
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);

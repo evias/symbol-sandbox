@@ -28,12 +28,6 @@ import {
     NamespaceId
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    uint64 as uint64_t,
-} from "nem2-library";
-
 import {from as observableFrom, Observable, merge} from 'rxjs';
 import {combineLatest, catchError} from 'rxjs/operators';
 
@@ -119,12 +113,7 @@ export default class extends BaseCommand {
                 text += '    ' + chalk.yellow('Divisibility: ') + mosaicInfo.divisibility + '\n';
                 text += '    ' + chalk.yellow('Duration: ') + mosaicInfo.duration.compact() + '\n';
                 text += '    ' + chalk.yellow('Mutable Supply: ') + (mosaicInfo.isSupplyMutable() ? chalk.green('YES') : chalk.red('NO')) + '\n';
-                text += '    ' + chalk.yellow('Mutable Levy: ') + (mosaicInfo.isLevyMutable() ? chalk.green('YES') : chalk.red('NO')) + '\n';
                 text += '    ' + chalk.yellow('Transferable: ') + (mosaicInfo.isTransferable() ? chalk.green('YES') : chalk.red('NO')) + '\n';
-
-                if (mosaicInfo.levy) {
-                    text += chalk.yellow('Levy:   ') + JSON.stringify(mosaicInfo.levy) + '\n';
-                }
 
                 console.log(text);
             },

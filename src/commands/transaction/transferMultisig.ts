@@ -47,13 +47,6 @@ import {
     AggregateTransaction
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 import {from as observableFrom} from 'rxjs';
@@ -125,7 +118,7 @@ export default class extends BaseCommand {
             NetworkType.MIJIN_TEST);
 
         // cosignatory #1 initiates the transaction (first signature)
-        const signedMultisigTx = cosignatoryAccount.sign(multisigTx);
+        const signedMultisigTx = cosignatoryAccount.sign(multisigTx, this.generationHash);
 
         //@FIX catapult-server@0.3.0.2 does not allow namespaceId for HashLockTransaction
         //@FIX we need to retrieve the `linked mosaicId` from the `/namespace/`  endpoint.
@@ -142,7 +135,7 @@ export default class extends BaseCommand {
             signedMultisigTx,
             NetworkType.MIJIN_TEST);
 
-        const signedLockFundsTx = cosignatoryAccount.sign(lockFundsTx);
+        const signedLockFundsTx = cosignatoryAccount.sign(lockFundsTx, this.generationHash);
 
         // multi step listener with lock funds announce and aggregate-bonded announce
         // we must listen to the confirmed channel to be sure that our HashLockTransaction

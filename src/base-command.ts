@@ -29,7 +29,9 @@ import {
 export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
 
-    public endpointUrl = "http://localhost:3000";
+    //public endpointUrl = "http://catapult.evias.be:3000";
+    public endpointUrl = "http://c2.nem.ninja:3000";
+    public generationHash = "57F7DA205008026C776CB6AED843393F04CD458E0AA2D9F1D5F31A402072B2D6";
     protected accounts = {
         "tester1": {
             "address": "SBXTSKD2FDOP4A37ANWSWCOKGPIBGYYK5U3CIYMZ",

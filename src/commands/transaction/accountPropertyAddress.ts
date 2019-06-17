@@ -51,14 +51,6 @@ import {
     PropertyModificationType
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t,
-    address
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -110,7 +102,7 @@ export default class extends BaseCommand {
             NetworkType.MIJIN_TEST
         );
 
-        const signedTransaction = account.sign(addressModification);
+        const signedTransaction = account.sign(addressModification, this.generationHash);
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);

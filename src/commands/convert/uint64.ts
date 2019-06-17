@@ -18,14 +18,10 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64
+    UInt64,
+    RawUInt64,
+    Convert
 } from 'nem2-sdk';
-
-import {
-    convert,
-    mosaicId,
-    uint64 as uint64_t
-} from "nem2-library";
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
@@ -76,7 +72,7 @@ export default class extends BaseCommand {
                 uint64 = UInt64.fromUint(parsed);
             }
             else if (typeof parsed === "string") {
-                uint64 = new UInt64(uint64_t.fromHex(parsed));
+                uint64 = new UInt64(RawUInt64.fromHex(parsed));
             }
         } catch (err) {
             console.log(err, options);
@@ -84,7 +80,7 @@ export default class extends BaseCommand {
         }
 
         let binary = [];
-        let uint8 = convert.hexToUint8(uint64_t.toHex(uint64.toDTO()));
+        let uint8 = Convert.hexToUint8(RawUInt64.toHex(uint64.toDTO()));
 
         uint8.forEach((byte) => {
             const bits = byte.toString(2).split('');
@@ -105,8 +101,8 @@ export default class extends BaseCommand {
             '0x' + uint64.lower.toString(16).toUpperCase() + ', ' +
             '0x' + uint64.higher.toString(16).toUpperCase() + ']\n';
         text += 'Number:\t\t\t' + uint64.compact() + '\n';
-        text += 'Hexadecimal:\t\t0x' + uint64_t.toHex(uint64.toDTO()) + '\n';
-        text += 'UInt8:\t\t\t' + convert.hexToUint8(uint64_t.toHex(uint64.toDTO())).join(', ') + '\n';
+        text += 'Hexadecimal:\t\t0x' + RawUInt64.toHex(uint64.toDTO()) + '\n';
+        text += 'UInt8:\t\t\t' + Convert.hexToUint8(RawUInt64.toHex(uint64.toDTO())).join(', ') + '\n';
         text += 'Binary:\n' + '\n';
 
         binary.forEach((byte, i) => {

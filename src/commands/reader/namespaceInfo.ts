@@ -28,12 +28,6 @@ import {
     NamespaceId
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    uint64 as uint64_t,
-} from "nem2-library";
-
 import {from as observableFrom, Observable, merge} from 'rxjs';
 import {combineLatest, catchError} from 'rxjs/operators';
 

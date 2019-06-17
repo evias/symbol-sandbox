@@ -24,12 +24,6 @@ import {
     NetworkType,
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    uint64 as uint64_t,
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 

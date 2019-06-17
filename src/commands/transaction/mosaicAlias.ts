@@ -46,13 +46,6 @@ import {
     AliasActionType
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -131,7 +124,7 @@ export default class extends BaseCommand {
             NetworkType.MIJIN_TEST
         );
 
-        const signedTransaction = account.sign(aliasTx);
+        const signedTransaction = account.sign(aliasTx, this.generationHash);
 
         console.log(aliasTx);
         console.log("Signed Transaction: ", signedTransaction);

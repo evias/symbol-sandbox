@@ -47,13 +47,6 @@ import {
     MosaicSupplyType
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -119,7 +112,7 @@ export default class extends BaseCommand {
                  fundsTx2.toAggregate(accountInfo.publicAccount)],
                 NetworkType.MIJIN_TEST, []);
 
-            const signedTransaction = account.sign(aggregateTx);
+            const signedTransaction = account.sign(aggregateTx, this.generationHash);
 
             const transactionHttp = new TransactionHttp(this.endpointUrl);
             const listener = new Listener(this.endpointUrl);

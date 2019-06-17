@@ -22,15 +22,9 @@ import {
     Account,
     Address,
     NetworkType,
-    BlockchainHttp,
+    ChainHttp,
     BlockchainScore
 } from 'nem2-sdk';
-
-import {
-    convert,
-    mosaicId,
-    uint64 as uint64_t,
-} from "nem2-library";
 
 import {from as observableFrom, Observable, merge} from 'rxjs';
 import {combineLatest, catchError} from 'rxjs/operators';
@@ -72,7 +66,7 @@ export default class extends BaseCommand {
             this.endpointUrl = peerUrl;
         }
 
-        const blockchainHttp = new BlockchainHttp(this.endpointUrl);
+        const blockchainHttp = new ChainHttp(this.endpointUrl);
 
         let text = '';
         text += chalk.green('Peer:\t') + chalk.bold(this.endpointUrl) + '\n';

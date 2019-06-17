@@ -49,13 +49,6 @@ import {
     RegisterNamespaceTransaction
 } from 'nem2-sdk';
 
-import {
-    convert,
-    mosaicId,
-    nacl_catapult,
-    uint64 as uint64_t
-} from "nem2-library";
-
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -135,7 +128,7 @@ export default class extends BaseCommand {
             );
         }
 
-        const signedTransaction = account.sign(registerTx);
+        const signedTransaction = account.sign(registerTx, this.generationHash);
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);
