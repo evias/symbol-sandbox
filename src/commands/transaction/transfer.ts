@@ -99,19 +99,14 @@ export default class extends BaseCommand {
         const message   = PlainMessage.create("Testing simple transfer");
         const deadline  = Deadline.create();
 
-        console.log("DEADLINE: ", deadline);
-        console.log("LocalDateTime: ", deadline.value);
-
         // prepare SDK transaction and sign it
         const transferTransaction = TransferTransaction.create(
             deadline,
-            recipient, 
-            mosaics, 
-            message, 
+            recipient,
+            mosaics,
+            message,
             NetworkType.MIJIN_TEST
         );
-
-        console.log("TRANSFER: ", transferTransaction);
 
         const signedTransaction = account.sign(transferTransaction, this.generationHash);
 
