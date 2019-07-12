@@ -46,9 +46,10 @@ import {
     MosaicSupplyChangeTransaction,
     MosaicSupplyType,
     NamespaceId,
-    PropertyType,
-    AccountPropertyTransaction,
-    PropertyModificationType
+    RestrictionType,
+    AccountRestrictionTransaction,
+    AccountRestrictionModification,
+    RestrictionModificationType
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -89,15 +90,15 @@ export default class extends BaseCommand {
     public async createAddressPropertyModification(recipient: Address): Promise<Object>
     {
         const account   = this.getAccount("tester1");
-        const addressPropertyFilter = AccountPropertyTransaction.createAddressFilter(
-            PropertyModificationType.Add,
+        const addressPropertyFilter = AccountRestrictionModification.createForAddress(
+            RestrictionModificationType.Add,
             recipient,
         );
 
         // tester1 blocks incoming transactions from tester4
-        const addressModification = AccountPropertyTransaction.createAddressPropertyModificationTransaction(
+        const addressModification = AccountRestrictionTransaction.createAddressRestrictionModificationTransaction(
             Deadline.create(), 
-            PropertyType.BlockAddress, 
+            RestrictionType.BlockAddress, 
             [addressPropertyFilter],
             NetworkType.MIJIN_TEST
         );

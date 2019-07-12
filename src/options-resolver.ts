@@ -19,8 +19,8 @@ import {
     MosaicId,
     NamespaceId,
     UInt64,
+    RawUInt64 as uint64_t,
 } from 'nem2-sdk';
-import { uint64 as uint64_t } from 'nem2-library';
 
 /**
  * Generic command line argument reader.

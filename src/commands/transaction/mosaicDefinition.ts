@@ -98,7 +98,6 @@ export default class extends BaseCommand {
             MosaicProperties.create({
                 supplyMutable: false,
                 transferable: true,
-                levyMutable: false,
                 divisibility: 3,
                 duration: UInt64.fromUint(1000000), // 1'000'000 blocks
             }),

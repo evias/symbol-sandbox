@@ -117,7 +117,7 @@ export default class extends BaseCommand {
                 NetworkType.MIJIN_TEST,
             );
 
-            const signedLockFundsTransaction = account.sign(lockFundsTransaction);
+            const signedLockFundsTransaction = account.sign(lockFundsTransaction, this.generationHash);
 
             const transactionHttp = new TransactionHttp(this.endpointUrl);
             transactionHttp.announce(signedLockFundsTransaction).subscribe(() => {
