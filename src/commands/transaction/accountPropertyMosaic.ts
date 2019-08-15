@@ -46,10 +46,10 @@ import {
     MosaicSupplyChangeTransaction,
     MosaicSupplyType,
     NamespaceId,
-    RestrictionType,
-    AccountRestrictionTransaction,
-    RestrictionModificationType,
-    AccountRestrictionModification
+    PropertyType,
+    AccountPropertyTransaction,
+    PropertyModificationType,
+    AccountPropertyModification
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -95,15 +95,15 @@ export default class extends BaseCommand {
         const account = this.getAccount("multisig1");
 
         // Add `mosaicId` MosaicId to the AccountPropertyMosaic filter
-        const mosaicPropertyFilter = AccountRestrictionModification.createForMosaic(
-            RestrictionModificationType.Add,
+        const mosaicPropertyFilter = AccountPropertyModification.createForMosaic(
+            PropertyModificationType.Add,
             new MosaicId(mosaicId),
         );
 
         // Add `mosaicId` property filter and *allow* mosaic for tester1
-        const addressModification = AccountRestrictionTransaction.createMosaicRestrictionModificationTransaction(
+        const addressModification = AccountPropertyTransaction.createMosaicPropertyModificationTransaction(
             Deadline.create(), 
-            RestrictionType.AllowMosaic, 
+            PropertyType.AllowMosaic, 
             [mosaicPropertyFilter],
             NetworkType.MIJIN_TEST
         );
