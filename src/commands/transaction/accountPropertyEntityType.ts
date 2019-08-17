@@ -46,10 +46,10 @@ import {
     MosaicSupplyChangeTransaction,
     MosaicSupplyType,
     NamespaceId,
-    AccountRestrictionModification,
-    AccountRestrictionTransaction,
-    RestrictionType,
-    RestrictionModificationType,
+    AccountPropertyModification,
+    AccountPropertyTransaction,
+    PropertyType,
+    PropertyModificationType,
     SignedTransaction
 } from 'nem2-sdk';
 
@@ -94,15 +94,15 @@ export default class extends BaseCommand {
         // further filters could add different transaction types to
         // the list, but the first time must always be this type.
 
-        const entityTypePropertyFilter = AccountRestrictionModification.createForOperation(
-            RestrictionModificationType.Add,
-            TransactionType.MODIFY_ACCOUNT_RESTRICTION_OPERATION
+        const entityTypePropertyFilter = AccountPropertyModification.createForEntityType(
+            PropertyModificationType.Add,
+            TransactionType.MODIFY_ACCOUNT_PROPERTY_ENTITY_TYPE
         );
 
         // allow transaction type `MODIFY_ACCOUNT_PROPERTY_ENTITY_TYPE` for tester3
-        const entityTypeModification = AccountRestrictionTransaction.createOperationRestrictionModificationTransaction(
+        const entityTypeModification = AccountPropertyTransaction.createEntityTypePropertyModificationTransaction(
             Deadline.create(), 
-            RestrictionType.AllowTransaction, 
+            PropertyType.AllowTransaction, 
             [entityTypePropertyFilter],
             NetworkType.MIJIN_TEST
         );

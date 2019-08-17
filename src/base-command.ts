@@ -30,8 +30,8 @@ export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
 
     //public endpointUrl = "http://catapult.evias.be:3000";
-    public endpointUrl = "http://c2.nem.ninja:3000";
-    public generationHash = "57F7DA205008026C776CB6AED843393F04CD458E0AA2D9F1D5F31A402072B2D6";
+    public endpointUrl = "http://localhost:3000";
+    public generationHash = "167FF7C1CC4C2D536EDB7497608001C3A7E9B91D90FAB2A4ECFE6424A489D58E";
     protected accounts = {
         "tester1": {
             "address": "SBXTSKD2FDOP4A37ANWSWCOKGPIBGYYK5U3CIYMZ",
@@ -50,15 +50,13 @@ export abstract class BaseCommand extends Command {
             "privateKey": ""},
     };
 
-    private hasBlockMonitor = false;
-    private blockSubscription = null;
-    private listenerAddresses = null;
-    private listenerBlocks = null;
+    public listenersAddresses = {};
+    public listenerBlocks = null;
+    public blockSubscription = null;
 
     constructor() {
         super();
         this.spinner.setSpinnerString('|/-\\');
-        this.listenerAddresses = new Listener(this.endpointUrl);
         this.listenerBlocks = new Listener(this.endpointUrl);
     }
 
@@ -90,47 +88,53 @@ export abstract class BaseCommand extends Command {
     }
 
     public monitorAddress(address: string): any {
-        this.listenerAddresses.open().then(() => {
+
+        if (this.listenersAddresses.hasOwnProperty(address)) {
+            return false;
+        }
+
+        this.listenersAddresses[address] = new Listener(this.endpointUrl);
+        this.listenersAddresses[address].open().then(() => {
 
             // Monitor transaction errors
-            this.listenerAddresses.status(Address.createFromRawAddress(address))
+            this.listenersAddresses[address].status(Address.createFromRawAddress(address))
                 .subscribe(error => {
-                    let err = chalk.red("[ERROR] Error: ");
+                    let err = chalk.red("[ERROR] Error [" + address + "]: ");
                     console.log(err, error);
                 },
                 error => console.error(error));
 
             // Monitor confirmed transactions
-            this.listenerAddresses.confirmed(Address.createFromRawAddress(address))
+            this.listenersAddresses[address].confirmed(Address.createFromRawAddress(address))
                 .subscribe(tx => {
-                    let msg = chalk.green("[MONITOR] Confirmed TX: ");
+                    let msg = chalk.green("[MONITOR] Confirmed TX [" + address + "]: ");
 
                     console.log(msg, JSON.stringify(tx))
                 },
                 error => console.error(error));
 
             // Monitor unconfirmed transactions
-            this.listenerAddresses.unconfirmedAdded(Address.createFromRawAddress(address))
+            this.listenersAddresses[address].unconfirmedAdded(Address.createFromRawAddress(address))
                 .subscribe(tx => {
-                    let msg = chalk.yellow("[MONITOR] Unconfirmed TX: ");
+                    let msg = chalk.yellow("[MONITOR] Unconfirmed TX [" + address + "]: ");
 
                     console.log(msg, JSON.stringify(tx))
                 },
                 error => console.error(error));
 
             // Monitor aggregate bonded transactions
-            this.listenerAddresses.aggregateBondedAdded(Address.createFromRawAddress(address))
+            this.listenersAddresses[address].aggregateBondedAdded(Address.createFromRawAddress(address))
                 .subscribe(tx => {
-                    let msg = chalk.yellow("[MONITOR] Aggregate Bonded TX: ");
+                    let msg = chalk.yellow("[MONITOR] Aggregate Bonded TX [" + address + "]: ");
 
                     console.log(msg, JSON.stringify(tx))
                 },
                 error => console.error(error));
 
             // Monitor cosignature transactions
-            this.listenerAddresses.cosignatureAdded(Address.createFromRawAddress(address))
+            this.listenersAddresses[address].cosignatureAdded(Address.createFromRawAddress(address))
                 .subscribe(tx => {
-                    let msg = chalk.yellow("[MONITOR] Cosignature TX: ");
+                    let msg = chalk.yellow("[MONITOR] Cosignature TX [" + address + "]: ");
 
                     console.log(msg, JSON.stringify(tx))
                 },
@@ -140,7 +144,9 @@ export abstract class BaseCommand extends Command {
 
     public closeMonitors(): any
     {
-        this.listenerAddresses.close();
+        Object.keys(this.listenersAddresses)
+              .map((address) => { this.listenersAddresses[address].close(); });
+
         this.listenerBlocks.close();
     }
 
