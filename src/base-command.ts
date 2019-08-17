@@ -50,10 +50,9 @@ export abstract class BaseCommand extends Command {
             "privateKey": ""},
     };
 
-    private hasBlockMonitor = false;
-    private blockSubscription = null;
     public listenersAddresses = {};
     public listenerBlocks = null;
+    public blockSubscription = null;
 
     constructor() {
         super();
