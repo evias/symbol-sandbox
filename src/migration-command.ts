@@ -22,19 +22,27 @@ import { Account, NetworkType } from 'nem2-sdk';
 // internal dependencies
 import { OptionsResolver } from './options-resolver';
 import { BaseCommand, BaseOptions } from './base-command';
+import { DEFAULT_NIS_URL, NISDataReader, NIS_SDK as sdk } from './services/NISDataReader';
+import { DEFAULT_CAT_URL, CATDataReader } from './services/CATDataReader';
 
-export const DEFAULT_NIS_URL = 'http://hugealice.nem.ninja:7890';
-export const NIS_SDK = require('nem-sdk').default;
+export const NIS_SDK = sdk;
 
 export abstract class MigrationCommand extends BaseCommand {
 
     protected catapultAccount: Account;
+    protected catapultAddress: string;
     protected catapultNetworkId: NetworkType = NetworkType.MIJIN_TEST;
+    protected catapultReader: CATDataReader;
     protected nisUrl: string = DEFAULT_NIS_URL;
     protected nisAccount: any;
-    protected nisNetworkId: number = NIS_SDK.model.network.data.mainnet.id;
+    protected nisAddress: string;
+    protected nisReader: NISDataReader;
+
+    constructor() {
+        super();
+    }
     
-    protected readParameters(options: BaseOptions): Object {
+    protected async readParameters(options: BaseOptions) {
 
         const params = {};
 
@@ -85,6 +93,15 @@ export abstract class MigrationCommand extends BaseCommand {
             throw new Error('Empty or invalid account private key provided. Please, check your input.');
         }
 
+        // read networkId from NIS endpoint
+        const nisNetworkId = await NISDataReader.getNetworkId(this.nisUrl);
+
+        // read networkId from Catapult endpoint
+        const catNetworkId = await CATDataReader.getNetworkId(this.endpointUrl);
+
+        // initialize services and load accounts
+        this.nisReader = new NISDataReader(this.nisUrl, 7890, nisNetworkId);
+        this.catapultReader = new CATDataReader(this.endpointUrl, 3000, catNetworkId);
         this.loadAccounts(params['privateKey']);
 
         return params;
@@ -93,10 +110,12 @@ export abstract class MigrationCommand extends BaseCommand {
     protected loadAccounts(privateKey: string): boolean {
 
         // Load Catapult Account
-        this.catapultAccount = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
+        this.catapultAccount = Account.createFromPrivateKey(privateKey, this.catapultReader.NETWORK_ID);
+        this.catapultAddress = this.catapultAccount.address.plain();
 
         // Load NIS1 Account
         this.nisAccount = NIS_SDK.crypto.keyPair.create(privateKey);
+        this.nisAddress = NIS_SDK.model.address.toAddress(this.nisAccount.publicKey.toString(), this.nisReader.NETWORK_ID);
 
         // Load successful
         return true;

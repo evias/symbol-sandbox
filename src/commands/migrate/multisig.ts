@@ -46,24 +46,17 @@ export default class extends MigrationCommand {
     @metadata
     async execute(options: MigrationOptions) 
     {
-        const params = this.readParameters(options);
-
-        // STEP 1: Create addresses from keypair
-        const catapultAddress = this.catapultAccount.address.plain();
-        const nisAddress = NIS_SDK.model.address.toAddress(this.nisAccount.publicKey.toString(), this.nisNetworkId);
+        const params = await this.readParameters(options);
 
         console.log('');
-        console.log('Catapult Address: ' + chalk.green(catapultAddress));
-        console.log('NIS1 Address:     ' + chalk.green(nisAddress));
+        console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
+        console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
         console.log('');
 
         // STEP 2: Read account information on NIS1
-        const endpoint = NIS_SDK.model.objects.create('endpoint')(this.nisUrl.replace(/:[0-9]+/, ''), 7890);
-        const accountInfo = await NIS_SDK.com.requests.account.data(endpoint, nisAddress);
-        const multisigInfo = accountInfo.account.multisigInfo;
-        const cosignatories = accountInfo.meta.cosignatories;
+        const multisigInfo = await this.nisReader.getMultisigInfo(this.nisAddress);
 
-        if (! multisigInfo.hasOwnProperty('cosignatoriesCount')) {
+        if (multisigInfo === false) {
             console.log(chalk.red('This account is not a multi-signature account. Aborting.'));
             console.log('');
             return ;
@@ -72,15 +65,15 @@ export default class extends MigrationCommand {
         console.log('Multi-Signature Account Details');
         console.log('');
 
-        console.log('Co-Signatories Count:    ' + chalk.green(multisigInfo.cosignatoriesCount));
-        console.log('Co-Signatories Required: ' + chalk.green(multisigInfo.minCosignatories));
+        console.log('Co-Signatories Count:    ' + chalk.green('' + multisigInfo.cosignatoriesCount));
+        console.log('Co-Signatories Required: ' + chalk.green('' + multisigInfo.minCosignatories));
         console.log('Definition: ' + chalk.green(multisigInfo.minCosignatories + ' of ' + multisigInfo.cosignatoriesCount));
         console.log('');
 
         console.log('List of Co-Signatories');
         console.log('');
 
-        cosignatories.map((cosigner, i) => {
+        multisigInfo.cosignatories.map((cosigner, i) => {
             console.log((i+1) + ': ' + chalk.green(cosigner.address));
         });
         console.log('');

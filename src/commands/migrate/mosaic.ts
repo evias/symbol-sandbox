@@ -46,27 +46,22 @@ export default class extends MigrationCommand {
     @metadata
     async execute(options: MigrationOptions) 
     {
-        const params = this.readParameters(options);
-
-        // STEP 1: Create addresses from keypair
-        const catapultAddress = this.catapultAccount.address.plain();
-        const nisAddress = NIS_SDK.model.address.toAddress(this.nisAccount.publicKey.toString(), this.nisNetworkId);
+        const params = await this.readParameters(options);
 
         console.log('');
-        console.log('Catapult Address: ' + chalk.green(catapultAddress));
-        console.log('NIS1 Address:     ' + chalk.green(nisAddress));
+        console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
+        console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
         console.log('');
 
         // STEP 2: Read mosaic definitions owned by account on NIS1
         //XXX mosaic definition list may have more than 1 page
-        const endpoint = NIS_SDK.model.objects.create('endpoint')(this.nisUrl.replace(/:[0-9]+/, ''), 7890);
-        const mosaics = await NIS_SDK.com.requests.account.mosaics.definitions(endpoint, nisAddress);
+        const mosaics = await this.nisReader.getCreatedMosaics(this.nisAddress);
 
         console.log('List of Mosaics Owned');
         console.log('---------------------');
         console.log('');
 
-        mosaics.data.map(async (mosaic) => {
+        mosaics.map(async (mosaic) => {
             const fqmn = mosaic.id.namespaceId + ':' + mosaic.id.name;
 
             console.log('Name:   ' + chalk.green(mosaic.id.namespaceId) + ':' + chalk.green(mosaic.id.name));

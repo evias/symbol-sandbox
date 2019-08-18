@@ -46,26 +46,21 @@ export default class extends MigrationCommand {
     @metadata
     async execute(options: MigrationOptions) 
     {
-        const params = this.readParameters(options);
-
-        // STEP 1: Create addresses from keypair
-        const catapultAddress = this.catapultAccount.address.plain();
-        const nisAddress = NIS_SDK.model.address.toAddress(this.nisAccount.publicKey.toString(), this.nisNetworkId);
+        const params = await this.readParameters(options);
 
         console.log('');
-        console.log('Catapult Address: ' + chalk.green(catapultAddress));
-        console.log('NIS1 Address:     ' + chalk.green(nisAddress));
+        console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
+        console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
         console.log('');
 
         // STEP 2: Read namespaces owned by account on NIS1
         //XXX namespaces list may have more than 1 page
-        const endpoint = NIS_SDK.model.objects.create('endpoint')(this.nisUrl.replace(/:[0-9]+/, ''), 7890);
-        const namespaces = await NIS_SDK.com.requests.account.namespaces.owned(endpoint, nisAddress);
+        const namespaces = await this.nisReader.getCreatedNamespaces(this.nisAddress);
 
         console.log('List of Namespaces Owned');
         console.log('');
 
-        namespaces.data.map((namespace) => {
+        namespaces.map((namespace) => {
             console.log('Name:   ' + chalk.green(namespace.fqn));
             console.log('Height: ' + chalk.green(namespace.height));
             console.log('');
