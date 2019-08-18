@@ -17,13 +17,18 @@
  */
 import chalk from 'chalk';
 import { ExpectedError, option, Options } from 'clime';
-import { Account, NetworkType } from 'nem2-sdk';
+import { 
+    Account,
+    NetworkType,
+} from 'nem2-sdk';
 
 // internal dependencies
 import { OptionsResolver } from './options-resolver';
 import { BaseCommand, BaseOptions } from './base-command';
 import { DEFAULT_NIS_URL, NISDataReader, NIS_SDK as sdk } from './services/NISDataReader';
-import { DEFAULT_CAT_URL, CATDataReader } from './services/CATDataReader';
+import { CATDataReader } from './services/CATDataReader';
+import { TransactionSigner } from './services/TransactionSigner';
+import { PayloadPrinter } from './services/PayloadPrinter';
 
 export const NIS_SDK = sdk;
 
@@ -37,11 +42,12 @@ export abstract class MigrationCommand extends BaseCommand {
     protected nisAccount: any;
     protected nisAddress: string;
     protected nisReader: NISDataReader;
+    protected printer: PayloadPrinter;
 
     constructor() {
         super();
     }
-    
+
     protected async readParameters(options: BaseOptions) {
 
         const params = {};
@@ -93,16 +99,25 @@ export abstract class MigrationCommand extends BaseCommand {
             throw new Error('Empty or invalid account private key provided. Please, check your input.');
         }
 
+        this.spinner.start();
+
         // read networkId from NIS endpoint
         const nisNetworkId = await NISDataReader.getNetworkId(this.nisUrl);
 
         // read networkId from Catapult endpoint
         const catNetworkId = await CATDataReader.getNetworkId(this.endpointUrl);
+        const catHash = await CATDataReader.getGenerationHash(this.endpointUrl);
 
         // initialize services and load accounts
         this.nisReader = new NISDataReader(this.nisUrl, 7890, nisNetworkId);
-        this.catapultReader = new CATDataReader(this.endpointUrl, 3000, catNetworkId);
+        this.catapultReader = new CATDataReader(this.endpointUrl, 3000, catNetworkId, catHash);
         this.loadAccounts(params['privateKey']);
+        this.spinner.stop(true);
+
+        console.log('');
+        console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
+        console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
+        console.log('');
 
         return params;
     }
@@ -138,4 +153,9 @@ export class MigrationOptions extends Options {
         description: 'Your account private key',
     })
     privateKey: string;
+    @option({
+        flag: 'e',
+        description: 'Flag to determine whether to export to file on disk or not.',
+    })
+    export: string;
 }

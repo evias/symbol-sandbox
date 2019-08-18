@@ -52,11 +52,17 @@ export class NISDataReader extends Service {
     }
 
     public async getCreatedNamespaces(address: string) {
+
+        //XXX must query multiple pages
+
         const response = await NIS_SDK.com.requests.account.namespaces.owned(this.endpoint, address);
         return response.data;
     }
 
     public async getCreatedMosaics(address: string) {
+
+        //XXX must query multiple pages
+
         const response = await NIS_SDK.com.requests.account.mosaics.definitions(this.endpoint, address);
         return response.data;
     }

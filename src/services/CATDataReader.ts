@@ -23,6 +23,7 @@ import { Service } from './Service';
 
 export const DEFAULT_CAT_URL = 'http://localhost:3000';
 export const DEFAULT_CAT_NETWORK_ID = NetworkType.MIJIN_TEST;
+export const DEFAULT_GENERATION_HASH = '167FF7C1CC4C2D536EDB7497608001C3A7E9B91D90FAB2A4ECFE6424A489D58E';
 
 export class CATDataReader extends Service {
 
@@ -30,6 +31,7 @@ export class CATDataReader extends Service {
         public readonly URL: string = DEFAULT_CAT_URL,
         public readonly PORT: number = 3000,
         public readonly NETWORK_ID: number = DEFAULT_CAT_NETWORK_ID,
+        public readonly GENERATION_HASH: string = DEFAULT_GENERATION_HASH,
     ) {
         super();
     }
@@ -42,5 +44,15 @@ export class CATDataReader extends Service {
 
         // parse network id from endpoint
         return parseInt(response.data.networkIdentifier);
+    }
+
+    public static async getGenerationHash(url: string) {
+        const response: any = await axios.get(url.replace(/\/$/, '') + '/block/1');
+        if (!response || !response.data) {
+            return DEFAULT_GENERATION_HASH;
+        }
+
+        // Read generationHash from first block
+        return response.data.meta.generationHash;
     }
 }

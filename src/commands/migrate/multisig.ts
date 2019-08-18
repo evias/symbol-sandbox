@@ -17,11 +17,16 @@
  */
 import chalk from 'chalk';
 import { command, metadata } from 'clime';
+import * as readlineSync from 'readline-sync';
+
+// internal dependencies
 import {
     MigrationCommand,
     MigrationOptions,
-    NIS_SDK,
 } from '../../migration-command';
+import { TransactionSigner } from '../../services/TransactionSigner';
+import { TransactionFactory } from '../../services/TransactionFactory';
+import { PayloadPrinter } from '../../services/PayloadPrinter';
 
 /**
  * Migration Tool for Multi-Signature Recovery
@@ -48,13 +53,10 @@ export default class extends MigrationCommand {
     {
         const params = await this.readParameters(options);
 
-        console.log('');
-        console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
-        console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
-        console.log('');
-
-        // STEP 2: Read account information on NIS1
+        // read mosaic definitions owned by account on NIS1
+        this.spinner.start();
         const multisigInfo = await this.nisReader.getMultisigInfo(this.nisAddress);
+        this.spinner.stop(true);
 
         if (multisigInfo === false) {
             console.log(chalk.red('This account is not a multi-signature account. Aborting.'));
@@ -62,23 +64,30 @@ export default class extends MigrationCommand {
             return ;
         }
 
-        console.log('Multi-Signature Account Details');
+        console.log(chalk.green(
+            `This account is a ${multisigInfo.minCosignatories}-of-${multisigInfo.cosignatoriesCount} multi-signature account.`));
+
+        // create Catapult transactions
+        const factory = new TransactionFactory(this.catapultReader);
+        const transactions = factory.getMultisigTransactions(multisigInfo.cosignatories);
+
+        // initialize transaction signer
+        const signer = new TransactionSigner(
+            this.catapultReader,
+            this.catapultAccount,
+            transactions,
+        );
+
+        // whether to aggregate transactions or not
+        console.log('');
+        const doAggregate = readlineSync.keyInYN(
+            'Do you want to merge ' + transactions.length + ' transactions into 1 aggregate transaction? ');
         console.log('');
 
-        console.log('Co-Signatories Count:    ' + chalk.green('' + multisigInfo.cosignatoriesCount));
-        console.log('Co-Signatories Required: ' + chalk.green('' + multisigInfo.minCosignatories));
-        console.log('Definition: ' + chalk.green(multisigInfo.minCosignatories + ' of ' + multisigInfo.cosignatoriesCount));
-        console.log('');
-
-        console.log('List of Co-Signatories');
-        console.log('');
-
-        multisigInfo.cosignatories.map((cosigner, i) => {
-            console.log((i+1) + ': ' + chalk.green(cosigner.address));
-        });
-        console.log('');
-
-        //XXX
+        // sign transactions
+        const uris = signer.getSignedTransactions(doAggregate);
+        this.printer = new PayloadPrinter(uris);
+        this.printer.toConsole();
     }
 
 }

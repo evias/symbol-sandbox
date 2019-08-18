@@ -58,6 +58,7 @@ export abstract class BaseCommand extends Command {
         super();
         this.spinner.setSpinnerString('|/-\\');
         this.listenerBlocks = new Listener(this.endpointUrl);
+        this.spinner.setSpinnerString('|/-\\');
     }
 
     public getAccount(name: string): Account {

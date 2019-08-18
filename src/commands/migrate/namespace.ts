@@ -17,11 +17,16 @@
  */
 import chalk from 'chalk';
 import { command, metadata } from 'clime';
+import * as readlineSync from 'readline-sync';
+
+// internal dependencies
 import {
     MigrationCommand,
     MigrationOptions,
-    NIS_SDK,
 } from '../../migration-command';
+import { TransactionSigner } from '../../services/TransactionSigner';
+import { TransactionFactory } from '../../services/TransactionFactory';
+import { PayloadPrinter } from '../../services/PayloadPrinter';
 
 /**
  * Migration Tool for Namespaces
@@ -48,25 +53,34 @@ export default class extends MigrationCommand {
     {
         const params = await this.readParameters(options);
 
-        console.log('');
-        console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
-        console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
-        console.log('');
-
-        // STEP 2: Read namespaces owned by account on NIS1
-        //XXX namespaces list may have more than 1 page
+        // read namespaces owned by account on NIS1
+        this.spinner.start();
         const namespaces = await this.nisReader.getCreatedNamespaces(this.nisAddress);
+        this.spinner.stop(true);
 
-        console.log('List of Namespaces Owned');
+        console.log(chalk.green(`Found ${namespaces.length} namespaces.`));
+
+        // create Catapult transactions
+        const factory = new TransactionFactory(this.catapultReader);
+        const transactions = factory.getNamespaceTransactions(namespaces);
+
+        // initialize transaction signer
+        const signer = new TransactionSigner(
+            this.catapultReader,
+            this.catapultAccount,
+            transactions,
+        );
+
+        // whether to aggregate transactions or not
+        console.log('');
+        const doAggregate = readlineSync.keyInYN(
+            'Do you want to merge ' + transactions.length + ' transactions into 1 aggregate transaction? ');
         console.log('');
 
-        namespaces.map((namespace) => {
-            console.log('Name:   ' + chalk.green(namespace.fqn));
-            console.log('Height: ' + chalk.green(namespace.height));
-            console.log('');
-        });
-
-        //XXX
+        // sign transactions
+        const uris = signer.getSignedTransactions(doAggregate);
+        this.printer = new PayloadPrinter(uris);
+        this.printer.toConsole();
     }
 
 }

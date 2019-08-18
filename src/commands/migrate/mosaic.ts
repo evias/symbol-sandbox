@@ -17,11 +17,16 @@
  */
 import chalk from 'chalk';
 import { command, metadata } from 'clime';
+import * as readlineSync from 'readline-sync';
+
+// internal dependencies
 import {
     MigrationCommand,
     MigrationOptions,
-    NIS_SDK,
 } from '../../migration-command';
+import { TransactionSigner } from '../../services/TransactionSigner';
+import { TransactionFactory } from '../../services/TransactionFactory';
+import { PayloadPrinter } from '../../services/PayloadPrinter';
 
 /**
  * Migration Tool for Mosaics
@@ -48,44 +53,34 @@ export default class extends MigrationCommand {
     {
         const params = await this.readParameters(options);
 
-        console.log('');
-        console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
-        console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
-        console.log('');
-
-        // STEP 2: Read mosaic definitions owned by account on NIS1
-        //XXX mosaic definition list may have more than 1 page
+        // read mosaic definitions owned by account on NIS1
+        this.spinner.start();
         const mosaics = await this.nisReader.getCreatedMosaics(this.nisAddress);
+        this.spinner.stop(true);
 
-        console.log('List of Mosaics Owned');
-        console.log('---------------------');
+        console.log(chalk.green(`Found ${mosaics.length} mosaic definitions.`));
+
+        // create Catapult transactions
+        const factory = new TransactionFactory(this.catapultReader);
+        const transactions = factory.getMosaicTransactions(mosaics);
+
+        // initialize transaction signer
+        const signer = new TransactionSigner(
+            this.catapultReader,
+            this.catapultAccount,
+            transactions,
+        );
+
+        // whether to aggregate transactions or not
+        console.log('');
+        const doAggregate = readlineSync.keyInYN(
+            'Do you want to merge ' + transactions.length + ' transactions into 1 aggregate transaction? ');
         console.log('');
 
-        mosaics.map(async (mosaic) => {
-            const fqmn = mosaic.id.namespaceId + ':' + mosaic.id.name;
-
-            console.log('Name:   ' + chalk.green(mosaic.id.namespaceId) + ':' + chalk.green(mosaic.id.name));
-
-            if (mosaic.description.length) {
-                console.log('Description: ');
-                console.log('\t' + chalk.green(mosaic.description));
-            }
-
-            const isTransferable = mosaic.properties[3].value === 'true';
-            const isMutableSupply = mosaic.properties[2].value === 'true';
-            const initialSupply = parseInt(mosaic.properties[1].value);
-            //XXX totalSupply
-
-            console.log('');
-            console.log('Divisibility:   ' + chalk.green(mosaic.properties[0].value));
-            console.log('Transferable: ' + (isTransferable ? chalk.green('YES') : chalk.red('NO')));
-            console.log('Mutable Supply: ' + (isMutableSupply ? chalk.green('YES') : chalk.red('NO')));
-            console.log('Initial Supply: ' + chalk.green('' +   initialSupply));
-            console.log('---------------------------');
-            console.log('');
-        });
-
-        //XXX
+        // sign transactions
+        const uris = signer.getSignedTransactions(doAggregate);
+        this.printer = new PayloadPrinter(uris);
+        this.printer.toConsole();
     }
 
 }
