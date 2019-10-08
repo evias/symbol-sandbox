@@ -18,18 +18,11 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
-    Address,
     MosaicId,
     MosaicHttp,
-    NetworkType,
     NamespaceHttp,
     NamespaceId
 } from 'nem2-sdk';
-
-import {from as observableFrom, Observable, merge} from 'rxjs';
-import {combineLatest, catchError} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
@@ -102,8 +95,7 @@ export default class extends BaseCommand {
             (mosaicInfo) => {
 
                 text += 'JSON: ' + JSON.stringify(mosaicInfo) + '\n\n';
-                text += chalk.yellow('MetaId:         ') + mosaicInfo.metaId + '\n';
-                text += chalk.yellow('MosaicId:       ') + mosaicInfo.mosaicId.toHex() + '\n';
+                text += chalk.yellow('MosaicId:       ') + mosaicInfo.id.toHex() + '\n';
                 text += chalk.yellow('Supply:         ') + mosaicInfo.supply.compact() + '\n';
                 text += chalk.yellow('Height:         ') + mosaicInfo.height.compact() + '\n';
                 text += chalk.yellow('Owner:   ') + '\n';

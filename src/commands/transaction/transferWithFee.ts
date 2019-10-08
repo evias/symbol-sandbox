@@ -19,33 +19,15 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
     NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     Address,
     Deadline,
     Mosaic,
     PlainMessage,
     TransactionHttp,
     TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    NamespaceId
+    NamespaceId,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -115,7 +97,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Transaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'testTransferAction() - Error';

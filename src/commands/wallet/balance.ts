@@ -79,7 +79,6 @@ export default class extends BaseCommand {
             let text = '';
             text += chalk.green('Address:\t') + chalk.bold(address.plain()) + '\n';
             text += '-'.repeat(20) + '\n\n';
-            text += 'Meta Data:\t' + JSON.stringify(accountInfo.meta) + '\n';
             text += 'Address:\t' + accountInfo.address.plain() + '\n';
             text += 'Address #:\t' + accountInfo.addressHeight.compact() + '\n';
             text += 'Public Key:\t' + accountInfo.publicKey + '\n';

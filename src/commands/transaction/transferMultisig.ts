@@ -19,17 +19,8 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceId,
     NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
     Deadline,
     Mosaic,
     PlainMessage,
@@ -37,14 +28,8 @@ import {
     TransferTransaction,
     LockFundsTransaction,
     NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
     Listener,
-    EmptyMessage,
-    ModifyMultisigAccountTransaction,
-    MultisigCosignatoryModificationType,
-    MultisigCosignatoryModification,
-    AggregateTransaction
+    AggregateTransaction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -152,7 +137,7 @@ export default class extends BaseCommand {
                 .subscribe(x => {
                     console.log('Announced lock funds transaction');
                     console.log('Hash:   ', signedLockFundsTx.hash);
-                    console.log('Signer: ', signedLockFundsTx.signer, '\n');
+                    console.log('Signer: ', signedLockFundsTx.signerPublicKey, '\n');
                     console.log('');
                     console.log('Waiting to be included in a block..');
                 }, err => console.error(err));
@@ -176,7 +161,7 @@ export default class extends BaseCommand {
             .subscribe(announcedAggregateBonded => {
                 console.log('Announced aggregate bonded transaction');
                 console.log('Hash:   ', signedMultisigTx.hash);
-                console.log('Signer: ', signedMultisigTx.signer, '\n');
+                console.log('Signer: ', signedMultisigTx.signerPublicKey, '\n');
 
                 return resolve(announcedAggregateBonded);
             }, err => console.error(err));

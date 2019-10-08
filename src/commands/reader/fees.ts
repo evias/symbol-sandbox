@@ -17,15 +17,8 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
-    Address,
-    NetworkType,
     TransactionHttp
 } from 'nem2-sdk';
-
-import {from as observableFrom, Observable, merge} from 'rxjs';
-import {combineLatest, catchError} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';

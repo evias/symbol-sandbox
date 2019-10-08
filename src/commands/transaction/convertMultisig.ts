@@ -18,32 +18,13 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
     Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceId,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    ModifyMultisigAccountTransaction,
-    MultisigCosignatoryModificationType,
-    MultisigCosignatoryModification
+    MultisigAccountModificationTransaction,
+    CosignatoryModificationAction,
+    MultisigCosignatoryModification,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -68,7 +49,7 @@ export class CommandOptions extends BaseOptions {
 }
 
 @command({
-    description: 'Send a ModifyMultisigAccountTransaction',
+    description: 'Send a MultisigAccountModificationTransaction',
 })
 export default class extends BaseCommand {
 
@@ -134,13 +115,13 @@ export default class extends BaseCommand {
         for (let i = 0; i < numCosig; i++) {
             const key = 'cosig' + (i+1);
             modifications.push(new MultisigCosignatoryModification(
-                MultisigCosignatoryModificationType.Add,
+                CosignatoryModificationAction.Add,
                 cosignatories[key],
             ));
         }
 
-        const modifType  = MultisigCosignatoryModificationType.Add;
-        const modifTx = ModifyMultisigAccountTransaction.create(
+        const modifType  = CosignatoryModificationAction.Add;
+        const modifTx = MultisigAccountModificationTransaction.create(
             Deadline.create(),
             reqCosig, // 2 minimum cosignatories
             reqCosig, // 2 cosignatories needed for removal of cosignatory
@@ -155,7 +136,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('ModifyMultisigAccount announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
             console.log("");
 
         }, (err) => {

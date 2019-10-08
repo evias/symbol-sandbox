@@ -18,8 +18,6 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
     AccountHttp,
     Address,
     NetworkType,

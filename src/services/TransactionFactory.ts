@@ -16,7 +16,7 @@
  */
 import { 
     Deadline,
-    RegisterNamespaceTransaction,
+    NamespaceRegistrationTransaction,
     Transaction,
     UInt64,
 } from 'nem2-sdk';
@@ -33,18 +33,18 @@ export class TransactionFactory extends Service {
         super();
     }
 
-    public getNamespaceTransactions(namespaces: any[]): RegisterNamespaceTransaction[] {
+    public getNamespaceTransactions(namespaces: any[]): NamespaceRegistrationTransaction[] {
 
         // shortcuts
         const ONE_YEAR_BLOCKS = (365 * 24 * 60 * 60) / 15; //XXX read block_target_seconds
 
-        const rootNamespacesTxes: RegisterNamespaceTransaction[] = [];
-        const subNamespacesTxes: RegisterNamespaceTransaction[] = [];
+        const rootNamespacesTxes: NamespaceRegistrationTransaction[] = [];
+        const subNamespacesTxes: NamespaceRegistrationTransaction[] = [];
         namespaces.map((namespace: any) => {
             if (namespace.fqn.indexOf('.') !== -1) {
                 // currently processing ROOT namespace
 
-                rootNamespacesTxes.push(RegisterNamespaceTransaction.createRootNamespace(
+                rootNamespacesTxes.push(NamespaceRegistrationTransaction.createRootNamespace(
                     Deadline.create(),
                     namespace.fqn,
                     UInt64.fromUint(ONE_YEAR_BLOCKS),
@@ -58,7 +58,7 @@ export class TransactionFactory extends Service {
                 const subName = namespace.fqn.replace(/(.*)+\.([a-zA-Z0-9-_]+)$/, '$2');
                 const parentName = namespace.fqn.replace(/(.*)+\.([a-zA-Z0-9-_]+)$/, '$1');
 
-                subNamespacesTxes.push(RegisterNamespaceTransaction.createSubNamespace(
+                subNamespacesTxes.push(NamespaceRegistrationTransaction.createSubNamespace(
                     Deadline.create(),
                     subName,
                     parentName,

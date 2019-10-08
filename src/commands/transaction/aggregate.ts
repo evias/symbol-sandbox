@@ -19,32 +19,17 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
     AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     Address,
     Deadline,
     Mosaic,
-    PlainMessage,
     TransactionHttp,
     TransferTransaction,
-    LockFundsTransaction,
     NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
     Listener,
     EmptyMessage,
     AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -121,7 +106,7 @@ export default class extends BaseCommand {
                 transactionHttp.announce(signedTransaction).subscribe(() => {
                     console.log('Announced aggregate complete transaction');
                     console.log('Hash:   ', signedTransaction.hash);
-                    console.log('Signer: ', signedTransaction.signer, '\n');
+                    console.log('Signer: ', signedTransaction.signerPublicKey, '\n');
                 }, (err) => {
                     let text = '';
                     text += 'testAggregateCompleteAction() - Error';

@@ -29,9 +29,9 @@ import {
     TransferTransaction,
     PublicAccount,
     AggregateTransaction,
-    ModifyMultisigAccountTransaction,
+    MultisigAccountModificationTransaction,
     MultisigCosignatoryModification,
-    MultisigCosignatoryModificationType,
+    CosignatoryModificationAction,
     SignedTransaction,
     TransactionMapping,
 } from 'nem2-sdk';
@@ -258,7 +258,7 @@ export default class extends BaseCommand {
             return transactionHttp.announce(signedTransactionA).subscribe(() => {
                 console.log('broadcastTradeSettlement: transactionA announced correctly');
                 console.log('Hash:   ', signedTransactionA.hash);
-                console.log('Signer: ', signedTransactionA.signer);
+                console.log('Signer: ', signedTransactionA.signerPublicKey);
             }, (err) => {
                 let text = '';
                 text += 'broadcastTradeSettlement() - Error with transactionA (Maker Fill)';
@@ -314,19 +314,19 @@ export default class extends BaseCommand {
     public getTakerOwnershipTransfer(
         takerAccount: PublicAccount,
         orderBookAddress: Address,
-    ): ModifyMultisigAccountTransaction
+    ): MultisigAccountModificationTransaction
     {
         const modifications = [
             new MultisigCosignatoryModification(
-                MultisigCosignatoryModificationType.Add,
+                CosignatoryModificationAction.Add,
                 takerAccount,
             ),
         ];
 
-        console.log('getTakerOwnershipTransfer: Creating ModifyMultisigAccountTransaction for SDEXX ownership transfer to Taker.');
+        console.log('getTakerOwnershipTransfer: Creating MultisigAccountModificationTransaction for SDEXX ownership transfer to Taker.');
         console.log('getTakerOwnershipTransfer: Modifications: ' + JSON.stringify(modifications));
 
-        const takerOwnershipTx = ModifyMultisigAccountTransaction.create(
+        const takerOwnershipTx = MultisigAccountModificationTransaction.create(
             Deadline.create(),
             1, // 1of1
             1, // 1of1

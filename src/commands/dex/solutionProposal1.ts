@@ -128,7 +128,7 @@ export default class extends BaseCommand {
         return await transactionHttp.announce(signedMakerTx).subscribe(async () => {
             console.log('Announced Maker Fill Transaction');
             console.log('Hash:   ', signedMakerTx.hash);
-            console.log('Signer: ', signedMakerTx.signer);
+            console.log('Signer: ', signedMakerTx.signerPublicKey);
 
             // ---------------------------------------------------
             // Step 5: Prepare Taker Order Book Fill
@@ -145,7 +145,7 @@ export default class extends BaseCommand {
             return transactionHttp.announce(signedTakerTx).subscribe(async () => {
                 console.log('Announced Taker Fill Transaction');
                 console.log('Hash:   ', signedTakerTx.hash);
-                console.log('Signer: ', signedTakerTx.signer);
+                console.log('Signer: ', signedTakerTx.signerPublicKey);
 
                 // -----------------------------------------------
                 // Step 7: Wait for Order Book Fill CONFIRMATION
@@ -207,7 +207,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedSettlementTx).subscribe(() => {
             console.log('Announced Settlement Aggregate Transaction');
             console.log('Hash:   ', signedSettlementTx.hash);
-            console.log('Signer: ', signedSettlementTx.signer);
+            console.log('Signer: ', signedSettlementTx.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'broadcastTradeSettlement() - Error';

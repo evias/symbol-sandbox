@@ -35,6 +35,7 @@ import {
     HashType,
     SHA3Hasher,
     Convert,
+    SignSchema,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -133,7 +134,7 @@ export default class extends BaseCommand {
         return await transactionHttp.announce(signedMakerTx).subscribe(async () => {
             console.log('Announced Maker Fill Transaction');
             console.log('Hash:   ', signedMakerTx.hash);
-            console.log('Signer: ', signedMakerTx.signer);
+            console.log('Signer: ', signedMakerTx.signerPublicKey);
 
             // ---------------------------------------------------
             // Step 5: Prepare Taker Order Book Fill
@@ -150,7 +151,7 @@ export default class extends BaseCommand {
             return transactionHttp.announce(signedTakerTx).subscribe(async () => {
                 console.log('Announced Taker Fill Transaction');
                 console.log('Hash:   ', signedTakerTx.hash);
-                console.log('Signer: ', signedTakerTx.signer);
+                console.log('Signer: ', signedTakerTx.signerPublicKey);
 
                 // -----------------------------------------------
                 // Step 7: Wait for Order Book Fill CONFIRMATION
@@ -168,7 +169,7 @@ export default class extends BaseCommand {
                     return transactionHttp.announce(signedMakerProofTx).subscribe(async () => {
                         console.log('Announced Maker Proof Transaction');
                         console.log('Hash:   ', signedMakerProofTx.hash);
-                        console.log('Signer: ', signedMakerProofTx.signer);
+                        console.log('Signer: ', signedMakerProofTx.signerPublicKey);
 
                         // -----------------------------------------------
                         // Step 9: Sign & Broadcast Taker Proof
@@ -179,7 +180,7 @@ export default class extends BaseCommand {
                         return transactionHttp.announce(signedTakerProofTx).subscribe(async () => {
                             console.log('Announced Taker Proof Transaction');
                             console.log('Hash:   ', signedTakerProofTx.hash);
-                            console.log('Signer: ', signedTakerProofTx.signer);
+                            console.log('Signer: ', signedTakerProofTx.signerPublicKey);
 
                             // -----------------------------------------------
                             // Step 10: Wait for Proofs CONFIRMATION
@@ -248,7 +249,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedSettlementTx).subscribe(() => {
             console.log('Announced Settlement Aggregate Transaction');
             console.log('Hash:   ', signedSettlementTx.hash);
-            console.log('Signer: ', signedSettlementTx.signer);
+            console.log('Signer: ', signedSettlementTx.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'broadcastTradeSettlement() - Error';
@@ -264,7 +265,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.harvest';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -294,7 +295,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.currency';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -345,7 +346,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.currency';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -375,7 +376,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.harvest';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);

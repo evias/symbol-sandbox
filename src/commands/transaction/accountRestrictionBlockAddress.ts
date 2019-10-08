@@ -18,38 +18,14 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
-    NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     Address,
+    NetworkType,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    NamespaceId,
-    PropertyType,
-    AccountPropertyTransaction,
-    AccountPropertyModification,
-    PropertyModificationType
+    AccountRestrictionModificationAction,
+    AccountRestrictionType,
+    AccountRestrictionModification,
+    AccountRestrictionTransaction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -90,15 +66,15 @@ export default class extends BaseCommand {
     public async createAddressPropertyModification(recipient: Address): Promise<Object>
     {
         const account   = this.getAccount("tester1");
-        const addressPropertyFilter = AccountPropertyModification.createForAddress(
-            PropertyModificationType.Add,
+        const addressPropertyFilter = AccountRestrictionModification.createForAddress(
+            AccountRestrictionModificationAction.Add,
             recipient,
         );
 
         // tester1 blocks incoming transactions from tester4
-        const addressModification = AccountPropertyTransaction.createAddressPropertyModificationTransaction(
+        const addressModification = AccountRestrictionTransaction.createAddressRestrictionModificationTransaction(
             Deadline.create(), 
-            PropertyType.BlockAddress, 
+            AccountRestrictionType.BlockIncomingAddress, 
             [addressPropertyFilter],
             NetworkType.MIJIN_TEST
         );
@@ -111,7 +87,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Transaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'testTransferAction() - Error';

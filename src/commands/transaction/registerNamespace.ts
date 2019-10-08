@@ -19,34 +19,11 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     NamespaceId,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    RegisterNamespaceTransaction
+    NamespaceRegistrationTransaction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -112,7 +89,7 @@ export default class extends BaseCommand {
 
         let registerTx;
         if (parentName.length) {
-            registerTx = RegisterNamespaceTransaction.createSubNamespace(
+            registerTx = NamespaceRegistrationTransaction.createSubNamespace(
                 Deadline.create(),
                 name,
                 parentName,
@@ -120,7 +97,7 @@ export default class extends BaseCommand {
             );
         }
         else {
-            registerTx = RegisterNamespaceTransaction.createRootNamespace(
+            registerTx = NamespaceRegistrationTransaction.createRootNamespace(
                 Deadline.create(),
                 name,
                 UInt64.fromUint(100000), // 100'000 blocks
@@ -133,13 +110,13 @@ export default class extends BaseCommand {
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);
         return transactionHttp.announce(signedTransaction).subscribe(() => {
-            console.log('RegisterNamespaceTransaction announced correctly');
+            console.log('NamespaceRegistrationTransaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
             console.log("");
         }, (err) => {
             let text = '';
-            text += 'registerNamespace() RegisterNamespaceTransaction - Error';
+            text += 'registerNamespace() NamespaceRegistrationTransaction - Error';
             console.log(text, err.response !== undefined ? err.response.text : err);
         });
     }

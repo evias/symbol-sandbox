@@ -18,38 +18,14 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
-    NetworkType,
     MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
+    NetworkType,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    NamespaceId,
-    PropertyType,
-    AccountPropertyTransaction,
-    PropertyModificationType,
-    AccountPropertyModification
+    AccountRestrictionModificationAction,
+    AccountRestrictionType,
+    AccountRestrictionModification,
+    AccountRestrictionTransaction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -95,15 +71,15 @@ export default class extends BaseCommand {
         const account = this.getAccount("multisig1");
 
         // Add `mosaicId` MosaicId to the AccountPropertyMosaic filter
-        const mosaicPropertyFilter = AccountPropertyModification.createForMosaic(
-            PropertyModificationType.Add,
+        const mosaicPropertyFilter = AccountRestrictionModification.createForMosaic(
+            AccountRestrictionModificationAction.Add,
             new MosaicId(mosaicId),
         );
 
         // Add `mosaicId` property filter and *allow* mosaic for tester1
-        const addressModification = AccountPropertyTransaction.createMosaicPropertyModificationTransaction(
+        const addressModification = AccountRestrictionTransaction.createMosaicRestrictionModificationTransaction(
             Deadline.create(), 
-            PropertyType.AllowMosaic, 
+            AccountRestrictionType.AllowMosaic, 
             [mosaicPropertyFilter],
             NetworkType.MIJIN_TEST
         );
@@ -116,7 +92,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Transaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'testTransferAction() - Error';

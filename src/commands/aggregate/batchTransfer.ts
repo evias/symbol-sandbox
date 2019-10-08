@@ -22,36 +22,18 @@ import {
     Account,
     NetworkType,
     MosaicId,
-    MosaicService,
     AccountHttp,
-    MosaicHttp,
     NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    MosaicNonce,
     Address,
     Deadline,
     Mosaic,
     NamespaceId,
-    PlainMessage,
     TransactionHttp,
     TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
     PublicAccount,
     Transaction,
-    TransactionType,
-    Listener,
     EmptyMessage,
     AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    MosaicAliasTransaction,
-    AliasActionType,
-    AliasType,
-    RegisterNamespaceTransaction,
     InnerTransaction,
 } from 'nem2-sdk';
 
@@ -156,7 +138,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Transaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'broadcastBatchTransfers() - Error';

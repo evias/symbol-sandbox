@@ -18,32 +18,13 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
     NetworkType,
     MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
     NamespaceId,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
     MosaicAliasTransaction,
-    AliasActionType
+    AliasAction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -112,7 +93,7 @@ export default class extends BaseCommand {
 
         // TEST: send mosaic alias transaction
 
-        const actionType  = AliasActionType.Link;
+        const actionType  = AliasAction.Link;
         const namespaceId = new NamespaceId(namespace);
         const mosaicId    = JSON.parse(mosIdJSON); 
 
@@ -134,7 +115,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('MosaicAlias announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
             console.log("");
 
         }, (err) => {

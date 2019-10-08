@@ -19,9 +19,6 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
-    Address,
-    NetworkType,
     ChainHttp,
     BlockchainScore
 } from 'nem2-sdk';
@@ -73,7 +70,7 @@ export default class extends BaseCommand {
         text += '-'.repeat(20) + '\n\n';
 
         const observer = observableFrom(blockchainHttp.getBlockchainHeight()).pipe(
-            combineLatest(observableFrom(blockchainHttp.getBlockchainScore())),
+            combineLatest(observableFrom(blockchainHttp.getChainScore())),
             catchError(err => observableFrom('Blockchain Height Error: ' + err.toString())),
         );
 
