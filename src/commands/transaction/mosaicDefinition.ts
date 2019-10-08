@@ -78,7 +78,8 @@ export default class extends BaseCommand {
             MosaicFlags.create(false, true, false),
             3,
             UInt64.fromUint(100000), // 100'000 blocks
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );  
 
         const signedCreateTransaction = account.sign(createTx, this.generationHash);

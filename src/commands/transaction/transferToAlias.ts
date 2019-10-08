@@ -27,6 +27,7 @@ import {
     TransferTransaction,
     NetworkCurrencyMosaic,
     NamespaceId,
+    UInt64,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -87,7 +88,8 @@ export default class extends BaseCommand {
             recipient, 
             mosaics, 
             message, 
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const signedTransaction = account.sign(transferTransaction, this.generationHash);

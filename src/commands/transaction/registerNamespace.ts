@@ -93,7 +93,8 @@ export default class extends BaseCommand {
                 Deadline.create(),
                 name,
                 parentName,
-                NetworkType.MIJIN_TEST
+                NetworkType.MIJIN_TEST,
+                UInt64.fromUint(1000000), // 1 XEM fee
             );
         }
         else {
@@ -101,7 +102,8 @@ export default class extends BaseCommand {
                 Deadline.create(),
                 name,
                 UInt64.fromUint(100000), // 100'000 blocks
-                NetworkType.MIJIN_TEST
+                NetworkType.MIJIN_TEST,
+                UInt64.fromUint(1000000), // 1 XEM fee
             );
         }
 

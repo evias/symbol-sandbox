@@ -82,7 +82,8 @@ export default class extends BaseCommand {
             new MosaicId(mosaicId),
             MosaicSupplyChangeAction.Increase,
             UInt64.fromUint(290888000), // div=3
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const signedSupplyTransaction = account.sign(supplyTx, this.generationHash);

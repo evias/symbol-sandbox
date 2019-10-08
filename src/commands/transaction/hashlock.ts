@@ -76,7 +76,8 @@ export default class extends BaseCommand {
             recipient,
             [],
             EmptyMessage,
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const accountHttp = new AccountHttp(this.endpointUrl);
@@ -100,6 +101,7 @@ export default class extends BaseCommand {
                 UInt64.fromUint(1000),
                 signedTransaction,
                 NetworkType.MIJIN_TEST,
+                UInt64.fromUint(1000000), // 1 XEM fee
             );
 
             const signedLockFundsTransaction = account.sign(lockFundsTransaction, this.generationHash);

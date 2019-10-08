@@ -92,7 +92,8 @@ export default class extends BaseCommand {
             recipient,
             [NetworkCurrencyMosaic.createRelative(1)],
             PlainMessage.create('Hello from a multisig transaction!!'),
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         // multisig on catapult is *bonded* AggregateTransaction

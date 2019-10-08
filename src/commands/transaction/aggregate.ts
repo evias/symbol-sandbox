@@ -78,7 +78,8 @@ export default class extends BaseCommand {
             recipient,
             mosaics,
             EmptyMessage,
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const fundsTx2 = TransferTransaction.create(
@@ -86,7 +87,8 @@ export default class extends BaseCommand {
             recipient,
             mosaics,
             EmptyMessage,
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const accountHttp = new AccountHttp(this.endpointUrl);

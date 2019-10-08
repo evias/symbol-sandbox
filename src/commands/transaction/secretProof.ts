@@ -24,6 +24,7 @@ import {
     SecretProofTransaction,
     HashType,
     Convert as convert,
+    UInt64,
 } from 'nem2-sdk';
 
 import { sha3_256 } from 'js-sha3';
@@ -100,7 +101,9 @@ export default class extends BaseCommand {
             secret,
             recipient,
             proof,
-            NetworkType.MIJIN_TEST);
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
+        );
 
         // Proof is sent by tester2
         const signedTransaction = account.sign(secretProofTx, this.generationHash);

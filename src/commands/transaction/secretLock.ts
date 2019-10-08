@@ -131,7 +131,9 @@ export default class extends BaseCommand {
             HashType.Op_Sha3_256,
             secret,
             recipient,
-            NetworkType.MIJIN_TEST);
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
+        );
 
         // Secret is sent by tester1
         const signedTransaction = account.sign(secretLockTx, this.generationHash);

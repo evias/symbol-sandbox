@@ -26,6 +26,7 @@ import {
     AccountRestrictionType,
     AccountRestrictionModification,
     AccountRestrictionTransaction,
+    UInt64,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -81,7 +82,8 @@ export default class extends BaseCommand {
             Deadline.create(), 
             AccountRestrictionType.AllowMosaic, 
             [mosaicPropertyFilter],
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const signedTransaction = account.sign(addressModification, this.generationHash);
