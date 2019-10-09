@@ -33,6 +33,7 @@ import {
     CosignatureSignedTransaction,
     CosignatureTransaction,
     AccountHttp,
+    Listener,
 } from 'nem2-sdk';
 import {from as observableFrom} from 'rxjs';
 import {filter, map, mergeMap, first} from 'rxjs/operators';
@@ -46,16 +47,16 @@ export class CommandOptions extends BaseOptions {
         flag: 'p',
         description: 'Private key of the account to convert',
     })
+    privateKey: string;
     @option({
         flag: 'n',
         description: 'Number of cosignatories (1-4)',
     })
+    numCosig: number;
     @option({
         flag: 'm',
         description: 'Required number of cosignatories (1-4)',
     })
-    privateKey: string;
-    numCosig: number;
     reqCosig: number;
 }
 
@@ -99,6 +100,13 @@ export default class extends BaseCommand {
         }
 
         const account = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
+
+        console.log('')
+        console.log('Converting Account to Multisig')
+        console.log('Private Key: ', privateKey)
+        console.log(' Public Key: ', account.publicKey)
+        console.log('    Address: ', account.address.plain())
+        console.log('')
 
         // add a block monitor
         this.monitorBlocks();
@@ -181,17 +189,20 @@ export default class extends BaseCommand {
         // Step 2: Announce AggregateBonded with MultisigAccountModificationTransaction
         // ----------------------------------------------------------------------------
 
-        return await this.listenerBlocks.newBlock().pipe(first()).subscribe(async (block) => {
-            transactionHttp.announce(signedAggregateTx).subscribe(() => {
-                console.log('Announced aggregate bonded transaction with multisig account modification');
-                console.log('Hash:   ', signedAggregateTx.hash);
-                console.log('Signer: ', signedAggregateTx.signerPublicKey, '\n');
-            }, (err) => {
-                let text = '';
-                text += 'testLockFundsAction() - Error';
-                console.log(text, err.response !== undefined ? err.response.text : err);
+        const blockListener = new Listener(this.endpointUrl)
+        return blockListener.open().then(() => {
+            return blockListener.newBlock().pipe(first()).subscribe(async (block) => {
+                transactionHttp.announceAggregateBonded(signedAggregateTx).subscribe(() => {
+                    console.log('Announced aggregate bonded transaction with multisig account modification');
+                    console.log('Hash:   ', signedAggregateTx.hash);
+                    console.log('Signer: ', signedAggregateTx.signerPublicKey, '\n');
+                }, (err) => {
+                    let text = '';
+                    text += 'createModifyMultisigAccount() - Error';
+                    console.log(text, err.response !== undefined ? err.response.text : err);
+                });
             });
-        });
+        })        
     }
 
 }

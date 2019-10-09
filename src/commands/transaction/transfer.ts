@@ -75,7 +75,7 @@ export default class extends BaseCommand {
         const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
 
         // attach mosaicId !
-        mosaics.push(new Mosaic(mosaicId, UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(mosaicId, UInt64.fromUint(5000000000))); // 5000 XEN
 
         const account   = this.getAccount("tester1");
         const message   = PlainMessage.create("Testing simple transfer");
