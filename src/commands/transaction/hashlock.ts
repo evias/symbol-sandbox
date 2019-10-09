@@ -95,7 +95,7 @@ export default class extends BaseCommand {
             // @FIX catapult-server@0.3.0.2 bug with HashLock.mosaics containing namespaceId
             const mosaicId = await namespaceHttp.getLinkedMosaicId(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME)).toPromise();
 
-            // create lock funds of 10 NetworkCurrencyMosaic for the aggregate transaction
+            // create lock funds of 10 "cat.currency" for the aggregate transaction
             const lockFundsTransaction = LockFundsTransaction.create(
                 Deadline.create(),
                 new Mosaic(mosaicId, UInt64.fromUint(10000000)),

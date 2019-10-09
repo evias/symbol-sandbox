@@ -68,11 +68,12 @@ export default class extends BaseCommand {
         const address = this.getAddress("tester1");
         this.monitorAddress(address.plain());
 
-        return await this.createAddressAlias(namespaceName, address);
+        return await this.createAddressAlias(namespaceName);
     }
 
-    public async createAddressAlias(namespace: string, address: Address): Promise<Object>
+    public async createAddressAlias(namespace: string): Promise<Object>
     {
+        const signer = this.getAccount("tester1");
         const account = this.getAccount("tester1");
 
         // TEST: send address alias transaction
@@ -84,12 +85,12 @@ export default class extends BaseCommand {
             Deadline.create(),
             actionType,
             namespaceId,
-            address,
+            account.publicAccount.address,
             NetworkType.MIJIN_TEST,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 
-        const signedTransaction = account.sign(aliasTx, this.generationHash);
+        const signedTransaction = signer.sign(aliasTx, this.generationHash);
 
         console.log(aliasTx);
         console.log("Signed Transaction: ", signedTransaction);
