@@ -88,7 +88,7 @@ export default class extends BaseCommand {
             const aggregateTx = AggregateTransaction.createBonded(
                 Deadline.create(),
                 [fundsTx.toAggregate(accountInfo.publicAccount)],
-                NetworkType.MIJIN_TEST, []);
+                NetworkType.MIJIN_TEST, [], UInt64.fromUint(1000000));
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
 

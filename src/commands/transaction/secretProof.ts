@@ -91,22 +91,21 @@ export default class extends BaseCommand {
     ): Promise<Object>
     {
         // Proof is sent by tester2
-        const address = this.getAddress("tester2");
-        const account = this.getAccount("tester2");
-        const recipient = this.getAddress("tester1");
+        const prover = this.getAccount("tester2");
+        const initiator = this.getAddress("tester1");
 
         const secretProofTx = SecretProofTransaction.create(
             Deadline.create(),
             HashType.Op_Sha3_256,
             secret,
-            recipient,
+            initiator,
             proof,
             NetworkType.MIJIN_TEST,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         // Proof is sent by tester2
-        const signedTransaction = account.sign(secretProofTx, this.generationHash);
+        const signedTransaction = prover.sign(secretProofTx, this.generationHash);
         const transactionHttp = new TransactionHttp(this.endpointUrl);
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Announced secret proof transaction');

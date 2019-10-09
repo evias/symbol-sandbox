@@ -30,6 +30,7 @@ import {
     EmptyMessage,
     AggregateTransaction,
     NamespaceId,
+    PlainMessage,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -78,7 +79,7 @@ export default class extends BaseCommand {
             Deadline.create(),
             recipient,
             mosaics,
-            EmptyMessage,
+            PlainMessage.create("Testing aggregate transfer"),
             NetworkType.MIJIN_TEST,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
@@ -87,7 +88,7 @@ export default class extends BaseCommand {
             Deadline.create(),
             recipient,
             mosaics,
-            EmptyMessage,
+            PlainMessage.create("Testing aggregate transfer"),
             NetworkType.MIJIN_TEST,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
@@ -98,7 +99,7 @@ export default class extends BaseCommand {
                 Deadline.create(),
                 [fundsTx1.toAggregate(accountInfo.publicAccount),
                  fundsTx2.toAggregate(accountInfo.publicAccount)],
-                NetworkType.MIJIN_TEST, []);
+                NetworkType.MIJIN_TEST, [], UInt64.fromUint(1000000)); // 1 XEM fee
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
 

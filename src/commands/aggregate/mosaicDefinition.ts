@@ -79,7 +79,8 @@ export default class extends BaseCommand {
             MosaicFlags.create(true, true, false),
             3,
             UInt64.fromUint(100000), // 100'000 blocks
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000)
         );
 
         // STEP 2: MosaicSupplyChange
@@ -88,7 +89,8 @@ export default class extends BaseCommand {
             createTx.mosaicId,
             MosaicSupplyChangeAction.Increase,
             UInt64.fromUint(1000000),
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000)
         );
 
         // STEP 3: create aggregate
@@ -103,7 +105,8 @@ export default class extends BaseCommand {
                     supplyTx.toAggregate(accountInfo.publicAccount)
                 ],
                 NetworkType.MIJIN_TEST,
-                []
+                [],
+                UInt64.fromUint(1000000)
             );
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);

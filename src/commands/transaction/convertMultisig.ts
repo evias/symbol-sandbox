@@ -26,10 +26,20 @@ import {
     CosignatoryModificationAction,
     MultisigCosignatoryModification,
     UInt64,
+    AggregateTransaction,
+    Mosaic,
+    NamespaceId,
+    LockFundsTransaction,
+    CosignatureSignedTransaction,
+    CosignatureTransaction,
+    AccountHttp,
 } from 'nem2-sdk';
+import {from as observableFrom} from 'rxjs';
+import {filter, map, mergeMap, first} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
+import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -131,20 +141,56 @@ export default class extends BaseCommand {
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 
-        const signedTransaction = account.sign(modifTx, this.generationHash);
+        // MultisigAccountModificationTransaction must be announce in aggregate bonded
+        const aggregateTx = AggregateTransaction.createBonded(
+            Deadline.create(),
+            [modifTx.toAggregate(account.publicAccount)],
+            NetworkType.MIJIN_TEST, [], UInt64.fromUint(1000000));
 
-        // announce/broadcast transaction
+        // sign aggregate *but do not announce yet.* (SPAM protection)
+        const signedAggregateTx = account.sign(aggregateTx, this.generationHash);
+
+        // create lock funds of 10 "cat.currency" for the aggregate transaction
+        const lockFundsTransaction = LockFundsTransaction.create(
+            Deadline.create(),
+            new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10000000)), // 10 XEM
+            UInt64.fromUint(1000),
+            signedAggregateTx,
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000), // 1 XEM fee
+        );
+
+        const signedLockFundsTx = account.sign(lockFundsTransaction, this.generationHash);
+
+        // -------------------------------------
+        // Step 1: Announce LockFundsTransaction
+        // -------------------------------------
+
         const transactionHttp = new TransactionHttp(this.endpointUrl);
-        return transactionHttp.announce(signedTransaction).subscribe(() => {
-            console.log('ModifyMultisigAccount announced correctly');
-            console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signerPublicKey);
-            console.log("");
-
+        transactionHttp.announce(signedLockFundsTx).subscribe(() => {
+            console.log('Announced lock funds transaction');
+            console.log('Hash:   ', signedLockFundsTx.hash);
+            console.log('Signer: ', signedLockFundsTx.signerPublicKey, '\n');
         }, (err) => {
             let text = '';
             text += 'createModifyMultisigAccount() - Error';
             console.log(text, err.response !== undefined ? err.response.text : err);
+        });
+
+        // ----------------------------------------------------------------------------
+        // Step 2: Announce AggregateBonded with MultisigAccountModificationTransaction
+        // ----------------------------------------------------------------------------
+
+        return await this.listenerBlocks.newBlock().pipe(first()).subscribe(async (block) => {
+            transactionHttp.announce(signedAggregateTx).subscribe(() => {
+                console.log('Announced aggregate bonded transaction with multisig account modification');
+                console.log('Hash:   ', signedAggregateTx.hash);
+                console.log('Signer: ', signedAggregateTx.signerPublicKey, '\n');
+            }, (err) => {
+                let text = '';
+                text += 'testLockFundsAction() - Error';
+                console.log(text, err.response !== undefined ? err.response.text : err);
+            });
         });
     }
 

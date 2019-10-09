@@ -128,7 +128,8 @@ export default class extends BaseCommand {
             Deadline.create(),
             transferTransactions,
             NetworkType.MIJIN_TEST,
-            []
+            [],
+            UInt64.fromUint(1000000)
         );
 
         const signedTransaction = account.sign(aggregateTx, this.generationHash);
@@ -168,7 +169,8 @@ export default class extends BaseCommand {
             Address.createFromRawAddress(recipientAddress),
             [new Mosaic(mosaicId, amountFormat)],
             EmptyMessage,
-            NetworkType.MIJIN_TEST
+            NetworkType.MIJIN_TEST,
+            UInt64.fromUint(1000000)
         );
 
         return transferTx.toAggregate(publicAccount);
