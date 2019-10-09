@@ -33,6 +33,7 @@ import {
     AggregateTransaction,
 } from 'nem2-sdk';
 
+import {SandboxConstants} from '../../constants';
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -92,7 +93,7 @@ export default class extends BaseCommand {
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
 
             // @FIX catapult-server@0.3.0.2 bug with HashLock.mosaics containing namespaceId
-            const mosaicId = await namespaceHttp.getLinkedMosaicId(new NamespaceId('cat.currency')).toPromise();
+            const mosaicId = await namespaceHttp.getLinkedMosaicId(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME)).toPromise();
 
             // create lock funds of 10 NetworkCurrencyMosaic for the aggregate transaction
             const lockFundsTransaction = LockFundsTransaction.create(
