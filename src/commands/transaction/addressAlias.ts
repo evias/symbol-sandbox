@@ -50,6 +50,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let namespaceName;
         try {
@@ -86,7 +87,7 @@ export default class extends BaseCommand {
             actionType,
             namespaceId,
             account.publicAccount.address,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 

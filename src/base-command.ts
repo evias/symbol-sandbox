@@ -24,6 +24,7 @@ import {
     Listener,
     NetworkType,
     UInt64,
+    NetworkHttp,
 } from 'nem2-sdk';
 
 export abstract class BaseCommand extends Command {
@@ -31,6 +32,7 @@ export abstract class BaseCommand extends Command {
 
     public endpointUrl = "http://api-01.mt.us-east-1.nemtech.network:3000";
     public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
+    public networkType: NetworkType;
     protected accounts = {
         "tester1": {
             "address": "SBXTSKD2FDOP4A37ANWSWCOKGPIBGYYK5U3CIYMZ",
@@ -60,13 +62,21 @@ export abstract class BaseCommand extends Command {
         this.spinner.setSpinnerString('|/-\\');
     }
 
+    public async setupConfig() {
+        const networkHttp = new NetworkHttp(this.endpointUrl)
+        this.networkType = await networkHttp.getNetworkType().toPromise()
+
+        //XXX read generation hash from node
+        //XXX read currency mosaic from node
+    }
+
     public getAccount(name: string): Account {
-        return Account.createFromPrivateKey(this.accounts[name].privateKey, NetworkType.MIJIN_TEST);
+        return Account.createFromPrivateKey(this.accounts[name].privateKey, this.networkType);
     }
 
     public getAddress(name: string): Address {
         const acct = this.getAccount(name);
-        return Address.createFromPublicKey(acct.publicKey, NetworkType.MIJIN_TEST);
+        return Address.createFromPublicKey(acct.publicKey, this.networkType);
     }
 
     private getPrivateKey(name: string): string {

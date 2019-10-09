@@ -67,6 +67,7 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions)
     {
+        await this.setupConfig();
         let peerUrl = this.endpointUrl;
         try {
             peerUrl = OptionsResolver(options,
@@ -92,8 +93,8 @@ export default class extends BaseCommand {
         // ----------------------------------------
         // Step 2: Generate ephemeral SDEXX account
         // ----------------------------------------
-        const sdexCurrencyAccount = Account.generateNewAccount(NetworkType.MIJIN_TEST);
-        const sdexHarvestAccount = Account.generateNewAccount(NetworkType.MIJIN_TEST);
+        const sdexCurrencyAccount = Account.generateNewAccount(this.networkType);
+        const sdexHarvestAccount = Account.generateNewAccount(this.networkType);
 
         console.log('');
         console.log("SDEXX_XEM Private Key: ", sdexCurrencyAccount.privateKey.toString());
@@ -167,7 +168,7 @@ export default class extends BaseCommand {
                             [makerSettleTx.toAggregate(sdexHarvestAccount.publicAccount)],
                             [takerSettleTx.toAggregate(sdexCurrencyAccount.publicAccount)],
                         ),
-                        NetworkType.MIJIN_TEST,
+                        this.networkType,
                         []
                     );
 
@@ -230,7 +231,7 @@ export default class extends BaseCommand {
             orderBookAddress,
             mosaics,
             PlainMessage.create('Sell Order 10 cat.currency for 10 cat.harvest'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return orderBookFillTx;
@@ -251,7 +252,7 @@ export default class extends BaseCommand {
             makerAddress,
             mosaics,
             PlainMessage.create('Settle Trade with 10 cat.harvest for Maker'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return makerSettleTx;
@@ -272,7 +273,7 @@ export default class extends BaseCommand {
             orderBookAddress,
             mosaics,
             PlainMessage.create('Buy Order 10 cat.currency for 10 cat.harvest'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return orderBookFillTx;
@@ -293,7 +294,7 @@ export default class extends BaseCommand {
             takerAddress,
             mosaics,
             PlainMessage.create('Settle Trade with 10 cat.currency for Taker'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return takerSettleTx;

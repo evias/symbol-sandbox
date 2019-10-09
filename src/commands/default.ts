@@ -30,7 +30,11 @@ export const subcommands = [
         brief: 'Data converter',
     },
     {
-        name: 'cow',
-        brief: 'Cow network upgrade tester',
+        name: 'transaction',
+        brief: 'Transaction announcement tester',
+    },
+    {
+        name: 'reader',
+        brief: 'Blockchain data reader',
     },
 ];

@@ -73,6 +73,7 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) 
     {
+        await this.setupConfig();
         let peerUrl = this.endpointUrl;
         try {
             peerUrl = OptionsResolver(options,
@@ -98,7 +99,7 @@ export default class extends BaseCommand {
         // ----------------------------------------
         // Step 2: Generate ephemeral SDEXX account
         // ----------------------------------------
-        const sdexxAccount = Account.generateNewAccount(NetworkType.MIJIN_TEST);
+        const sdexxAccount = Account.generateNewAccount(this.networkType);
         const sdexxAddress = sdexxAccount.address;
 
         console.log('');
@@ -200,7 +201,7 @@ export default class extends BaseCommand {
                                         [makerSettleTx.toAggregate(sdexxAccount.publicAccount)],
                                         [takerSettleTx.toAggregate(sdexxAccount.publicAccount)],
                                     ),
-                                    NetworkType.MIJIN_TEST,
+                                    this.networkType,
                                     []
                                 );
 
@@ -282,7 +283,7 @@ export default class extends BaseCommand {
             HashType.Op_Sha3_256,
             secretHex,
             orderBookAddress,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return orderBookFillTx;
@@ -312,7 +313,7 @@ export default class extends BaseCommand {
             secretHex,
             orderBookAddress,
             proof,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return proofTx;
@@ -333,7 +334,7 @@ export default class extends BaseCommand {
             makerAddress,
             mosaics,
             PlainMessage.create('Settle Trade with 10 cat.harvest for Maker'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return makerSettleTx;
@@ -363,7 +364,7 @@ export default class extends BaseCommand {
             HashType.Op_Sha3_256,
             secretHex,
             orderBookAddress,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return orderBookFillTx;
@@ -393,7 +394,7 @@ export default class extends BaseCommand {
             secretHex,
             orderBookAddress,
             proof,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return proofTx;
@@ -414,7 +415,7 @@ export default class extends BaseCommand {
             takerAddress,
             mosaics,
             PlainMessage.create('Settle Trade with 10 cat.currency for Taker'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return takerSettleTx;

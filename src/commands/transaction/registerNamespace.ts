@@ -53,6 +53,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
         let name;
         let parentName;
         try {
@@ -93,7 +94,7 @@ export default class extends BaseCommand {
                 Deadline.create(),
                 name,
                 parentName,
-                NetworkType.MIJIN_TEST,
+                this.networkType,
                 UInt64.fromUint(1000000), // 1 XEM fee
             );
         }
@@ -102,7 +103,7 @@ export default class extends BaseCommand {
                 Deadline.create(),
                 name,
                 UInt64.fromUint(100000), // 100'000 blocks
-                NetworkType.MIJIN_TEST,
+                this.networkType,
                 UInt64.fromUint(1000000), // 1 XEM fee
             );
         }

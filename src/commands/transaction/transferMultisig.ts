@@ -57,6 +57,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let numCosig;
         try {
@@ -93,7 +94,7 @@ export default class extends BaseCommand {
             recipient,
             [new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(1000000))],
             PlainMessage.create('Hello from a multisig transaction!!'),
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 
@@ -102,7 +103,7 @@ export default class extends BaseCommand {
         const multisigTx = AggregateTransaction.createBonded(
             Deadline.create(),
             [transferTx.toAggregate(multisigAcct)],
-            NetworkType.MIJIN_TEST);
+            this.networkType);
 
         // cosignatory #1 initiates the transaction (first signature)
         const signedMultisigTx = cosignatoryAccount.sign(multisigTx, this.generationHash);
@@ -120,7 +121,7 @@ export default class extends BaseCommand {
             new Mosaic(mosaicId, UInt64.fromUint(absoluteAmount)),
             UInt64.fromUint(480), // ~2 hours
             signedMultisigTx,
-            NetworkType.MIJIN_TEST);
+            this.networkType);
 
         const signedLockFundsTx = cosignatoryAccount.sign(lockFundsTx, this.generationHash);
 

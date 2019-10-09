@@ -51,13 +51,14 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let privateKey;
         let cosignatory;
         try {
             privateKey = OptionsResolver(options, 'privateKey', () => { return ''; },
                 'Enter the cosignatory private key: ');
-            cosignatory = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
+            cosignatory = Account.createFromPrivateKey(privateKey, this.networkType);
         } catch (err) {
             throw new ExpectedError('Enter a valid cosignatory private key');
         }

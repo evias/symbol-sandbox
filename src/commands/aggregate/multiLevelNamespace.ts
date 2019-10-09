@@ -55,6 +55,7 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) 
     {
+        await this.setupConfig();
         let name;
 
         // read parameters
@@ -97,7 +98,7 @@ export default class extends BaseCommand {
         const aggregateTx = AggregateTransaction.createComplete(
             Deadline.create(),
             configTransactions,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             [],
             UInt64.fromUint(1000000)
         );
@@ -170,7 +171,7 @@ export default class extends BaseCommand {
                 Deadline.create(),
                 current,
                 parent,
-                NetworkType.MIJIN_TEST,
+                this.networkType,
                 UInt64.fromUint(1000000)
             );
             
@@ -181,7 +182,7 @@ export default class extends BaseCommand {
                 Deadline.create(),
                 namespaceName,
                 UInt64.fromUint(100000), // 100'000 blocks
-                NetworkType.MIJIN_TEST,
+                this.networkType,
                 UInt64.fromUint(1000000)
             );
         }

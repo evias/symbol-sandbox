@@ -62,6 +62,7 @@ export default class extends BaseCommand {
         if (peerUrl.length) {
             this.endpointUrl = peerUrl;
         }
+        await this.setupConfig();
 
         const blockchainHttp = new ChainHttp(this.endpointUrl);
 

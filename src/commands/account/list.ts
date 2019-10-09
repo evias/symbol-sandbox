@@ -46,6 +46,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let address;
         try {
@@ -63,7 +64,7 @@ export default class extends BaseCommand {
         text += '-'.repeat(20) + '\n\n';
 
         Object.keys(this.accounts).map((accountName) => {
-            const account = Account.createFromPrivateKey(this.accounts[accountName].privateKey, NetworkType.MIJIN_TEST);
+            const account = Account.createFromPrivateKey(this.accounts[accountName].privateKey, this.networkType);
 
             if (address.length && account.address.plain() !== address) {
                 return ; // filter by address is active

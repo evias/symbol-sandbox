@@ -72,6 +72,7 @@ export default class extends BaseCommand {
         if (peerUrl.length) {
             this.endpointUrl = peerUrl;
         }
+        await this.setupConfig();
 
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
 

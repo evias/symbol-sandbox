@@ -73,6 +73,7 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) 
     {
+        await this.setupConfig();
         let file;
         let amount;
         let mosaic;
@@ -127,7 +128,7 @@ export default class extends BaseCommand {
         const aggregateTx = AggregateTransaction.createComplete(
             Deadline.create(),
             transferTransactions,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             [],
             UInt64.fromUint(1000000)
         );
@@ -169,7 +170,7 @@ export default class extends BaseCommand {
             Address.createFromRawAddress(recipientAddress),
             [new Mosaic(mosaicId, amountFormat)],
             EmptyMessage,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000)
         );
 

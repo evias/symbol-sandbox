@@ -53,6 +53,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         // add a block monitor
         this.monitorBlocks();
@@ -87,7 +88,7 @@ export default class extends BaseCommand {
             recipient,
             mosaics,
             message,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 

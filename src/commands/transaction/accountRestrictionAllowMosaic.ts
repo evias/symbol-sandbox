@@ -51,6 +51,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let mosaicId;
         try {
@@ -82,7 +83,7 @@ export default class extends BaseCommand {
             Deadline.create(), 
             AccountRestrictionType.AllowMosaic, 
             [mosaicPropertyFilter],
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 

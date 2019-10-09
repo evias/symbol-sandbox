@@ -52,6 +52,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
         let secret;
         let duration;
         let amount;
@@ -100,7 +101,7 @@ export default class extends BaseCommand {
             secret,
             initiator,
             proof,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 

@@ -71,6 +71,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let privateKey;
         try {
@@ -99,7 +100,7 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid number of require cosignatories');
         }
 
-        const account = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
+        const account = Account.createFromPrivateKey(privateKey, this.networkType);
 
         console.log('')
         console.log('Converting Account to Multisig')
@@ -145,7 +146,7 @@ export default class extends BaseCommand {
             reqCosig, // 2 minimum cosignatories
             reqCosig, // 2 cosignatories needed for removal of cosignatory
             modifications,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 
@@ -153,7 +154,7 @@ export default class extends BaseCommand {
         const aggregateTx = AggregateTransaction.createBonded(
             Deadline.create(),
             [modifTx.toAggregate(account.publicAccount)],
-            NetworkType.MIJIN_TEST, [], UInt64.fromUint(1000000));
+            this.networkType, [], UInt64.fromUint(1000000));
 
         // sign aggregate *but do not announce yet.* (SPAM protection)
         const signedAggregateTx = account.sign(aggregateTx, this.generationHash);
@@ -164,7 +165,7 @@ export default class extends BaseCommand {
             new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10000000)), // 10 XEM
             UInt64.fromUint(1000),
             signedAggregateTx,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 

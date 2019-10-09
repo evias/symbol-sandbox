@@ -56,6 +56,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
         // add a block monitor
         this.monitorBlocks();
 
@@ -77,7 +78,7 @@ export default class extends BaseCommand {
             recipient,
             [],
             EmptyMessage,
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 
@@ -88,7 +89,7 @@ export default class extends BaseCommand {
             const aggregateTx = AggregateTransaction.createBonded(
                 Deadline.create(),
                 [fundsTx.toAggregate(accountInfo.publicAccount)],
-                NetworkType.MIJIN_TEST, [], UInt64.fromUint(1000000));
+                this.networkType, [], UInt64.fromUint(1000000));
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
 
@@ -101,7 +102,7 @@ export default class extends BaseCommand {
                 new Mosaic(mosaicId, UInt64.fromUint(10000000)),
                 UInt64.fromUint(1000),
                 signedTransaction,
-                NetworkType.MIJIN_TEST,
+                this.networkType,
                 UInt64.fromUint(1000000), // 1 XEM fee
             );
 

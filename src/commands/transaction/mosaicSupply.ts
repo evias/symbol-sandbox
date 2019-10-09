@@ -49,6 +49,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let mosaicId;
         try {
@@ -82,7 +83,7 @@ export default class extends BaseCommand {
             new MosaicId(mosaicId),
             MosaicSupplyChangeAction.Increase,
             UInt64.fromUint(290888000), // div=3
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 

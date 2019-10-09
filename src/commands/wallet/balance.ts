@@ -58,6 +58,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let addr;
         addr = OptionsResolver(options,
@@ -106,7 +107,7 @@ export default class extends BaseCommand {
             return Address.createFromRawAddress(addressOrPub);
         }
         else if (addressOrPub.length === 64) {
-            return Address.createFromPublicKey(addressOrPub, NetworkType.MIJIN_TEST);
+            return Address.createFromPublicKey(addressOrPub, this.networkType);
         }
 
         throw new ExpectedError("parameter addressOrPub must be either of 40 or 64 characters.");
