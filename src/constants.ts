@@ -16,7 +16,7 @@
  */
 export class SandboxConstants {
 
-    static readonly CURRENCY_MOSAIC_NAME: string = 'cat.currency';
-    static readonly HARVEST_MOSAIC_NAME: string = 'cat.harvest';
+    static readonly CURRENCY_MOSAIC_NAME: string = 'nem.xem';
+    static readonly HARVEST_MOSAIC_NAME: string = 'nem.xem';
 
 }
