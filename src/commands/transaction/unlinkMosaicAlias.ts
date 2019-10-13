@@ -18,32 +18,14 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
     NetworkType,
     MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
     NamespaceId,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
     MosaicAliasTransaction,
-    AliasActionType
+    AliasAction,
+    UInt64,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -73,6 +55,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let namespaceId;
         try {
@@ -112,7 +95,7 @@ export default class extends BaseCommand {
 
         // TEST: send mosaic alias transaction
 
-        const actionType  = AliasActionType.Unlink;
+        const actionType  = AliasAction.Unlink;
         const namespaceId = JSON.parse(nsIdJSON);
         const mosaicId    = JSON.parse(mosIdJSON); 
 
@@ -121,7 +104,8 @@ export default class extends BaseCommand {
             actionType,
             new NamespaceId(namespaceId),
             new MosaicId(mosaicId),
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const signedTransaction = account.sign(aliasTx, this.generationHash);
@@ -131,7 +115,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('MosaicAlias announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
             console.log("");
 
         }, (err) => {

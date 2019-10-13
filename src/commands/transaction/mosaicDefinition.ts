@@ -19,33 +19,13 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
     MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     MosaicNonce,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
     MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType
+    MosaicFlags,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -70,6 +50,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         // add a block monitor
         this.monitorBlocks();
@@ -95,13 +76,11 @@ export default class extends BaseCommand {
             Deadline.create(),
             nonce,
             mosId,
-            MosaicProperties.create({
-                supplyMutable: false,
-                transferable: true,
-                divisibility: 3,
-                duration: UInt64.fromUint(1000000), // 1'000'000 blocks
-            }),
-            NetworkType.MIJIN_TEST
+            MosaicFlags.create(false, true, false),
+            3,
+            UInt64.fromUint(100000), // 100'000 blocks
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );  
 
         const signedCreateTransaction = account.sign(createTx, this.generationHash);
@@ -111,7 +90,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedCreateTransaction).subscribe(() => {
             console.log('MosaicDefinition announced correctly');
             console.log('Hash:   ', signedCreateTransaction.hash);
-            console.log('Signer: ', signedCreateTransaction.signer);
+            console.log('Signer: ', signedCreateTransaction.signerPublicKey);
 
         }, (err) => {
             let text = '';

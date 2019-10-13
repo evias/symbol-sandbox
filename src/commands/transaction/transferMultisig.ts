@@ -19,38 +19,24 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceId,
     NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
     Deadline,
     Mosaic,
     PlainMessage,
     TransactionHttp,
     TransferTransaction,
     LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
     Listener,
-    EmptyMessage,
-    ModifyMultisigAccountTransaction,
-    MultisigCosignatoryModificationType,
-    MultisigCosignatoryModification,
-    AggregateTransaction
+    AggregateTransaction,
+    NamespaceId,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 import {from as observableFrom} from 'rxjs';
 import {filter, mergeMap} from 'rxjs/operators';
+import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -71,6 +57,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let numCosig;
         try {
@@ -105,9 +92,10 @@ export default class extends BaseCommand {
         const transferTx = TransferTransaction.create(
             Deadline.create(),
             recipient,
-            [NetworkCurrencyMosaic.createRelative(1)],
+            [new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(1000000))],
             PlainMessage.create('Hello from a multisig transaction!!'),
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         // multisig on catapult is *bonded* AggregateTransaction
@@ -115,7 +103,7 @@ export default class extends BaseCommand {
         const multisigTx = AggregateTransaction.createBonded(
             Deadline.create(),
             [transferTx.toAggregate(multisigAcct)],
-            NetworkType.MIJIN_TEST);
+            this.networkType);
 
         // cosignatory #1 initiates the transaction (first signature)
         const signedMultisigTx = cosignatoryAccount.sign(multisigTx, this.generationHash);
@@ -123,7 +111,7 @@ export default class extends BaseCommand {
         //@FIX catapult-server@0.3.0.2 does not allow namespaceId for HashLockTransaction
         //@FIX we need to retrieve the `linked mosaicId` from the `/namespace/`  endpoint.
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
-        const namespaceId = NetworkCurrencyMosaic.NAMESPACE_ID;
+        const namespaceId = new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME);
         const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
 
         // multisig account must lock funds for aggregate-bonded
@@ -133,7 +121,7 @@ export default class extends BaseCommand {
             new Mosaic(mosaicId, UInt64.fromUint(absoluteAmount)),
             UInt64.fromUint(480), // ~2 hours
             signedMultisigTx,
-            NetworkType.MIJIN_TEST);
+            this.networkType);
 
         const signedLockFundsTx = cosignatoryAccount.sign(lockFundsTx, this.generationHash);
 
@@ -152,7 +140,7 @@ export default class extends BaseCommand {
                 .subscribe(x => {
                     console.log('Announced lock funds transaction');
                     console.log('Hash:   ', signedLockFundsTx.hash);
-                    console.log('Signer: ', signedLockFundsTx.signer, '\n');
+                    console.log('Signer: ', signedLockFundsTx.signerPublicKey, '\n');
                     console.log('');
                     console.log('Waiting to be included in a block..');
                 }, err => console.error(err));
@@ -176,7 +164,7 @@ export default class extends BaseCommand {
             .subscribe(announcedAggregateBonded => {
                 console.log('Announced aggregate bonded transaction');
                 console.log('Hash:   ', signedMultisigTx.hash);
-                console.log('Signer: ', signedMultisigTx.signer, '\n');
+                console.log('Signer: ', signedMultisigTx.signerPublicKey, '\n');
 
                 return resolve(announcedAggregateBonded);
             }, err => console.error(err));

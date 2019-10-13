@@ -18,21 +18,14 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
     AccountHttp,
     Address,
-    MosaicId,
     MosaicHttp,
     MosaicService,
-    MosaicAmountView,
     NetworkType,
     NamespaceHttp,
     NamespaceId
 } from 'nem2-sdk';
-
-import {from as observableFrom, Observable, merge} from 'rxjs';
-import {combineLatest, catchError, map, mergeMap} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
@@ -85,6 +78,7 @@ export default class extends BaseCommand {
         if (peerUrl.length) {
             this.endpointUrl = peerUrl;
         }
+        await this.setupConfig();
         const accountHttp = new AccountHttp(this.endpointUrl);
         const mosaicHttp  = new MosaicHttp(this.endpointUrl);
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
@@ -93,7 +87,7 @@ export default class extends BaseCommand {
         // read address
         let address;
         if (account.length === 64) {
-            address = Address.createFromPublicKey(account, NetworkType.MIJIN_TEST);
+            address = Address.createFromPublicKey(account, this.networkType);
         } else if (account.length === 40 || account.length === 45) {
             address = Address.createFromRawAddress(account);
         } else {

@@ -19,32 +19,12 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
     MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
     MosaicSupplyChangeTransaction,
-    MosaicSupplyType
+    MosaicSupplyChangeAction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -69,6 +49,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let mosaicId;
         try {
@@ -100,9 +81,10 @@ export default class extends BaseCommand {
         const supplyTx = MosaicSupplyChangeTransaction.create(
             Deadline.create(),
             new MosaicId(mosaicId),
-            MosaicSupplyType.Increase,
+            MosaicSupplyChangeAction.Increase,
             UInt64.fromUint(290888000), // div=3
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const signedSupplyTransaction = account.sign(supplyTx, this.generationHash);
@@ -112,7 +94,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedSupplyTransaction).subscribe(() => {
             console.log('MosaicSupplyChange announced correctly');
             console.log('Hash:   ', signedSupplyTransaction.hash);
-            console.log('Signer: ', signedSupplyTransaction.signer);
+            console.log('Signer: ', signedSupplyTransaction.signerPublicKey);
 
         }, (err) => {
             let text = '';

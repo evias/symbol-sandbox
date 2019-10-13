@@ -18,32 +18,10 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
     Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
     AccountHttp,
-    MosaicHttp,
-    NamespaceId,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
-    Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    ModifyMultisigAccountTransaction,
-    MultisigCosignatoryModificationType,
-    MultisigCosignatoryModification,
     AggregateTransaction,
     CosignatureSignedTransaction,
     CosignatureTransaction,
@@ -73,13 +51,14 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let privateKey;
         let cosignatory;
         try {
             privateKey = OptionsResolver(options, 'privateKey', () => { return ''; },
                 'Enter the cosignatory private key: ');
-            cosignatory = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
+            cosignatory = Account.createFromPrivateKey(privateKey, this.networkType);
         } catch (err) {
             throw new ExpectedError('Enter a valid cosignatory private key');
         }
@@ -112,7 +91,7 @@ export default class extends BaseCommand {
 
             // read aggregate-bonded transactions
             let unsignedTxes = await accountHttp
-                                        .aggregateBondedTransactions(multisig.publicAccount)
+                                        .aggregateBondedTransactions(multisig.publicAccount.address)
                                         .toPromise();
 
             if (! unsignedTxes.length) {
@@ -127,7 +106,7 @@ export default class extends BaseCommand {
                 mergeMap(signedSignature => {
                     console.log('Signed cosignature transaction');
                     console.log('Parent Hash: ', signedSignature.parentHash);
-                    console.log('Signer:      ', signedSignature.signer, '\n');
+                    console.log('Signer:      ', signedSignature.signerPublicKey, '\n');
 
                     // announce cosignature
                     return transactionHttp.announceAggregateBondedCosignature(signedSignature);

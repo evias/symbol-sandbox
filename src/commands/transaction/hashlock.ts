@@ -19,35 +19,21 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
     AccountHttp,
-    MosaicHttp,
     NamespaceHttp,
     NamespaceId,
-    MosaicView,
-    MosaicInfo,
     Address,
     Deadline,
     Mosaic,
-    PlainMessage,
     TransactionHttp,
     TransferTransaction,
     LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
     EmptyMessage,
     AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType
 } from 'nem2-sdk';
 
+import {SandboxConstants} from '../../constants';
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -70,6 +56,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
         // add a block monitor
         this.monitorBlocks();
 
@@ -91,7 +78,8 @@ export default class extends BaseCommand {
             recipient,
             [],
             EmptyMessage,
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const accountHttp = new AccountHttp(this.endpointUrl);
@@ -101,20 +89,21 @@ export default class extends BaseCommand {
             const aggregateTx = AggregateTransaction.createBonded(
                 Deadline.create(),
                 [fundsTx.toAggregate(accountInfo.publicAccount)],
-                NetworkType.MIJIN_TEST, []);
+                this.networkType, [], UInt64.fromUint(1000000));
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
 
             // @FIX catapult-server@0.3.0.2 bug with HashLock.mosaics containing namespaceId
-            const mosaicId = await namespaceHttp.getLinkedMosaicId(new NamespaceId('cat.currency')).toPromise();
+            const mosaicId = await namespaceHttp.getLinkedMosaicId(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME)).toPromise();
 
-            // create lock funds of 10 NetworkCurrencyMosaic for the aggregate transaction
+            // create lock funds of 10 "cat.currency" for the aggregate transaction
             const lockFundsTransaction = LockFundsTransaction.create(
                 Deadline.create(),
                 new Mosaic(mosaicId, UInt64.fromUint(10000000)),
                 UInt64.fromUint(1000),
                 signedTransaction,
-                NetworkType.MIJIN_TEST,
+                this.networkType,
+                UInt64.fromUint(1000000), // 1 XEM fee
             );
 
             const signedLockFundsTransaction = account.sign(lockFundsTransaction, this.generationHash);
@@ -123,7 +112,7 @@ export default class extends BaseCommand {
             transactionHttp.announce(signedLockFundsTransaction).subscribe(() => {
                 console.log('Announced lock funds transaction');
                 console.log('Hash:   ', signedLockFundsTransaction.hash);
-                console.log('Signer: ', signedLockFundsTransaction.signer, '\n');
+                console.log('Signer: ', signedLockFundsTransaction.signerPublicKey, '\n');
             }, (err) => {
                 let text = '';
                 text += 'testLockFundsAction() - Error';

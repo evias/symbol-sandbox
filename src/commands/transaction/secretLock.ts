@@ -19,43 +19,22 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    RegisterNamespaceTransaction,
     SecretLockTransaction,
-    SecretProofTransaction,
     HashType,
     Convert as convert,
+    Mosaic,
+    NamespaceId,
 } from 'nem2-sdk';
 
 import { sha3_256 } from 'js-sha3';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
+import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -89,6 +68,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
         let secret;
         let duration;
         let amount;
@@ -130,10 +110,10 @@ export default class extends BaseCommand {
          * ```
          */
         const proof = convert.utf8ToHex(secret);
-        secret = sha3_256(secret).toUpperCase();
+        const hashd = sha3_256(secret);
 
         // Send secret lock transaction
-        return await this.sendSecretLock(recipient, duration, amount, secret);
+        return await this.sendSecretLock(recipient, duration, amount, hashd);
     }
 
     public async sendSecretLock(
@@ -149,12 +129,14 @@ export default class extends BaseCommand {
 
         const secretLockTx = SecretLockTransaction.create(
             Deadline.create(),
-            NetworkCurrencyMosaic.createAbsolute(amount),
+            new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), amount),
             duration,
             HashType.Op_Sha3_256,
             secret,
             recipient,
-            NetworkType.MIJIN_TEST);
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
+        );
 
         // Secret is sent by tester1
         const signedTransaction = account.sign(secretLockTx, this.generationHash);
@@ -162,7 +144,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(async () => {
             console.log('Announced secret lock transaction');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer, '\n');
+            console.log('Signer: ', signedTransaction.signerPublicKey, '\n');
         }, (err) => {
             let text = '';
             text += 'sendSecretLock() - Error';

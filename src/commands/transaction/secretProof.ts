@@ -18,38 +18,13 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    RegisterNamespaceTransaction,
-    SecretLockTransaction,
     SecretProofTransaction,
     HashType,
     Convert as convert,
+    UInt64,
 } from 'nem2-sdk';
 
 import { sha3_256 } from 'js-sha3';
@@ -77,6 +52,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
         let secret;
         let duration;
         let amount;
@@ -104,10 +80,10 @@ export default class extends BaseCommand {
          * ```
          */
         const proof = convert.utf8ToHex(secret);
-        secret = sha3_256(secret).toUpperCase();
+        const hashd = sha3_256(secret);
 
         // Send secret proof transaction
-        return await this.sendSecretProof(secret, proof);
+        return await this.sendSecretProof(hashd, proof);
     }
 
     public async sendSecretProof(
@@ -116,25 +92,26 @@ export default class extends BaseCommand {
     ): Promise<Object>
     {
         // Proof is sent by tester2
-        const address = this.getAddress("tester2");
-        const account = this.getAccount("tester2");
-        const recipient = this.getAddress("tester1");
+        const prover = this.getAccount("tester2");
+        const initiator = this.getAddress("tester1");
 
         const secretProofTx = SecretProofTransaction.create(
             Deadline.create(),
             HashType.Op_Sha3_256,
             secret,
-            recipient,
+            initiator,
             proof,
-            NetworkType.MIJIN_TEST);
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
+        );
 
         // Proof is sent by tester2
-        const signedTransaction = account.sign(secretProofTx, this.generationHash);
+        const signedTransaction = prover.sign(secretProofTx, this.generationHash);
         const transactionHttp = new TransactionHttp(this.endpointUrl);
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Announced secret proof transaction');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer, '\n');
+            console.log('Signer: ', signedTransaction.signerPublicKey, '\n');
         }, (err) => {
             let text = '';
             text += 'sendSecretProof() - Error';

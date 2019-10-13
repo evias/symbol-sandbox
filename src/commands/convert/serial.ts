@@ -105,7 +105,7 @@ export default class extends BaseCommand {
 
         let text = '';
         switch (typeBytes) {
-        case '4D41':
+        case '4D41': // Mosaic Definition
             const mosaicNonceLength = 8;
             const mosaicIdLength    = 16;
             const propsNumLength    = 2;

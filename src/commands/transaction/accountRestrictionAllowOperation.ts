@@ -18,39 +18,15 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
-    NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
-    Deadline,
-    Mosaic,
-    PlainMessage,
-    TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
     TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    NamespaceId,
-    AccountPropertyModification,
-    AccountPropertyTransaction,
-    PropertyType,
-    PropertyModificationType,
-    SignedTransaction
+    NetworkType,
+    Deadline,
+    TransactionHttp,
+    AccountRestrictionModificationAction,
+    AccountRestrictionType,
+    AccountRestrictionModification,
+    AccountRestrictionTransaction,
+    UInt64,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -75,6 +51,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         // add a block monitor
         this.monitorBlocks();
@@ -90,21 +67,22 @@ export default class extends BaseCommand {
         const account = this.getAccount("tester4");
 
         // first time "Transaction Type filter" must allow the 
-        // `MODIFY_ACCOUNT_PROPERTY_ENTITY_TYPE` transaction type
+        // `ACCOUNT_RESTRICTION_OPERATION` transaction type
         // further filters could add different transaction types to
         // the list, but the first time must always be this type.
 
-        const entityTypePropertyFilter = AccountPropertyModification.createForEntityType(
-            PropertyModificationType.Add,
-            TransactionType.MODIFY_ACCOUNT_PROPERTY_ENTITY_TYPE
+        const entityTypePropertyFilter = AccountRestrictionModification.createForOperation(
+            AccountRestrictionModificationAction.Add,
+            TransactionType.ACCOUNT_RESTRICTION_OPERATION
         );
 
-        // allow transaction type `MODIFY_ACCOUNT_PROPERTY_ENTITY_TYPE` for tester3
-        const entityTypeModification = AccountPropertyTransaction.createEntityTypePropertyModificationTransaction(
+        // allow transaction type `ACCOUNT_RESTRICTION_OPERATION` for tester3
+        const entityTypeModification = AccountRestrictionTransaction.createOperationRestrictionModificationTransaction(
             Deadline.create(), 
-            PropertyType.AllowTransaction, 
+            AccountRestrictionType.AllowOutgoingTransactionType, 
             [entityTypePropertyFilter],
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const signedTransaction = account.sign(entityTypeModification, this.generationHash);
@@ -115,7 +93,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Transaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'testTransferAction() - Error';

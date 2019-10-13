@@ -18,8 +18,6 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
     AccountHttp,
     Address,
     NetworkType,
@@ -81,12 +79,14 @@ export default class extends BaseCommand {
             this.endpointUrl = peerUrl;
         }
 
+        await this.setupConfig();
+
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
         const accountHttp = new AccountHttp(this.endpointUrl);
 
         let address: Address;
         if (account.length === 64) {
-            address = Address.createFromPublicKey(account, NetworkType.MIJIN_TEST);
+            address = Address.createFromPublicKey(account, this.networkType);
         }
         else if (account.length === 40) {
             address = Address.createFromRawAddress(account);

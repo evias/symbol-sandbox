@@ -18,57 +18,50 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
     Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
-    NamespaceId,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
+    MultisigAccountModificationTransaction,
+    CosignatoryModificationAction,
+    MultisigCosignatoryModification,
+    UInt64,
+    AggregateTransaction,
+    Mosaic,
+    NamespaceId,
     LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
+    CosignatureSignedTransaction,
+    CosignatureTransaction,
+    AccountHttp,
     Listener,
-    EmptyMessage,
-    ModifyMultisigAccountTransaction,
-    MultisigCosignatoryModificationType,
-    MultisigCosignatoryModification
 } from 'nem2-sdk';
+import {from as observableFrom} from 'rxjs';
+import {filter, map, mergeMap, first} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
+import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
         flag: 'p',
         description: 'Private key of the account to convert',
     })
+    privateKey: string;
     @option({
         flag: 'n',
         description: 'Number of cosignatories (1-4)',
     })
+    numCosig: number;
     @option({
         flag: 'm',
         description: 'Required number of cosignatories (1-4)',
     })
-    privateKey: string;
-    numCosig: number;
     reqCosig: number;
 }
 
 @command({
-    description: 'Send a ModifyMultisigAccountTransaction',
+    description: 'Send a MultisigAccountModificationTransaction',
 })
 export default class extends BaseCommand {
 
@@ -78,6 +71,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let privateKey;
         try {
@@ -106,7 +100,14 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid number of require cosignatories');
         }
 
-        const account = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
+        const account = Account.createFromPrivateKey(privateKey, this.networkType);
+
+        console.log('')
+        console.log('Converting Account to Multisig')
+        console.log('Private Key: ', privateKey)
+        console.log(' Public Key: ', account.publicKey)
+        console.log('    Address: ', account.address.plain())
+        console.log('')
 
         // add a block monitor
         this.monitorBlocks();
@@ -134,35 +135,75 @@ export default class extends BaseCommand {
         for (let i = 0; i < numCosig; i++) {
             const key = 'cosig' + (i+1);
             modifications.push(new MultisigCosignatoryModification(
-                MultisigCosignatoryModificationType.Add,
+                CosignatoryModificationAction.Add,
                 cosignatories[key],
             ));
         }
 
-        const modifType  = MultisigCosignatoryModificationType.Add;
-        const modifTx = ModifyMultisigAccountTransaction.create(
+        const modifType  = CosignatoryModificationAction.Add;
+        const modifTx = MultisigAccountModificationTransaction.create(
             Deadline.create(),
             reqCosig, // 2 minimum cosignatories
             reqCosig, // 2 cosignatories needed for removal of cosignatory
             modifications,
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
-        const signedTransaction = account.sign(modifTx, this.generationHash);
+        // MultisigAccountModificationTransaction must be announce in aggregate bonded
+        const aggregateTx = AggregateTransaction.createBonded(
+            Deadline.create(),
+            [modifTx.toAggregate(account.publicAccount)],
+            this.networkType, [], UInt64.fromUint(1000000));
 
-        // announce/broadcast transaction
+        // sign aggregate *but do not announce yet.* (SPAM protection)
+        const signedAggregateTx = account.sign(aggregateTx, this.generationHash);
+
+        // create lock funds of 10 "cat.currency" for the aggregate transaction
+        const lockFundsTransaction = LockFundsTransaction.create(
+            Deadline.create(),
+            new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10000000)), // 10 XEM
+            UInt64.fromUint(1000),
+            signedAggregateTx,
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
+        );
+
+        const signedLockFundsTx = account.sign(lockFundsTransaction, this.generationHash);
+
+        // -------------------------------------
+        // Step 1: Announce LockFundsTransaction
+        // -------------------------------------
+
         const transactionHttp = new TransactionHttp(this.endpointUrl);
-        return transactionHttp.announce(signedTransaction).subscribe(() => {
-            console.log('ModifyMultisigAccount announced correctly');
-            console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
-            console.log("");
-
+        transactionHttp.announce(signedLockFundsTx).subscribe(() => {
+            console.log('Announced lock funds transaction');
+            console.log('Hash:   ', signedLockFundsTx.hash);
+            console.log('Signer: ', signedLockFundsTx.signerPublicKey, '\n');
         }, (err) => {
             let text = '';
             text += 'createModifyMultisigAccount() - Error';
             console.log(text, err.response !== undefined ? err.response.text : err);
         });
+
+        // ----------------------------------------------------------------------------
+        // Step 2: Announce AggregateBonded with MultisigAccountModificationTransaction
+        // ----------------------------------------------------------------------------
+
+        const blockListener = new Listener(this.endpointUrl)
+        return blockListener.open().then(() => {
+            return blockListener.newBlock().pipe(first()).subscribe(async (block) => {
+                transactionHttp.announceAggregateBonded(signedAggregateTx).subscribe(() => {
+                    console.log('Announced aggregate bonded transaction with multisig account modification');
+                    console.log('Hash:   ', signedAggregateTx.hash);
+                    console.log('Signer: ', signedAggregateTx.signerPublicKey, '\n');
+                }, (err) => {
+                    let text = '';
+                    text += 'createModifyMultisigAccount() - Error';
+                    console.log(text, err.response !== undefined ? err.response.text : err);
+                });
+            });
+        })        
     }
 
 }

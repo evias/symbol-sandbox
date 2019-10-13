@@ -22,36 +22,22 @@ import {
     Account,
     NetworkType,
     MosaicId,
-    MosaicService,
     AccountHttp,
-    MosaicHttp,
     NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     MosaicNonce,
-    Address,
     Deadline,
-    Mosaic,
     NamespaceId,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
     PublicAccount,
     Transaction,
-    TransactionType,
-    Listener,
-    EmptyMessage,
     AggregateTransaction,
     MosaicDefinitionTransaction,
-    MosaicProperties,
+    MosaicFlags,
     MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
+    MosaicSupplyChangeAction,
     MosaicAliasTransaction,
-    AliasActionType,
-    AliasType,
-    RegisterNamespaceTransaction,
+    AliasAction,
+    NamespaceRegistrationTransaction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -97,6 +83,7 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) 
     {
+        await this.setupConfig();
         let name;
         let divisibility;
         let supplyMutable;
@@ -197,8 +184,9 @@ export default class extends BaseCommand {
         const aggregateTx = AggregateTransaction.createComplete(
             Deadline.create(),
             configTransactions,
-            NetworkType.MIJIN_TEST,
-            []
+            this.networkType,
+            [],
+            UInt64.fromUint(1000000)
         );
 
         const signedTransaction = account.sign(aggregateTx, this.generationHash);
@@ -208,7 +196,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Transaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'broadcastAggregateMosaicConfiguration() - Error';
@@ -248,14 +236,14 @@ export default class extends BaseCommand {
                 catch(e) {} // Do nothing, namespace "Error: Not Found"
             }
 
-            console.log("Step 1) Creating " + registerTxes.length + " RegisterNamespaceTransaction");
+            console.log("Step 1) Creating " + registerTxes.length + " NamespaceRegistrationTransaction");
             return resolve(registerTxes);
         });
     }
 
     public getCreateNamespaceTransaction(
         namespaceName: string
-    ): RegisterNamespaceTransaction
+    ): NamespaceRegistrationTransaction
     {
         const isSub = /\.{1,}/.test(namespaceName);
         const parts = namespaceName.split('.');
@@ -265,21 +253,23 @@ export default class extends BaseCommand {
         let registerTx;
         if (isSub === true) {
             // sub namespace level[i]
-            registerTx = RegisterNamespaceTransaction.createSubNamespace(
+            registerTx = NamespaceRegistrationTransaction.createSubNamespace(
                 Deadline.create(),
                 current,
                 parent,
-                NetworkType.MIJIN_TEST
+                this.networkType,
+                UInt64.fromUint(1000000)
             );
             
         }
         else {
             // root namespace
-            registerTx = RegisterNamespaceTransaction.createRootNamespace(
+            registerTx = NamespaceRegistrationTransaction.createRootNamespace(
                 Deadline.create(),
                 namespaceName,
                 UInt64.fromUint(100000), // 100'000 blocks
-                NetworkType.MIJIN_TEST
+                this.networkType,
+                UInt64.fromUint(1000000)
             );
         }
 
@@ -311,8 +301,11 @@ export default class extends BaseCommand {
             Deadline.create(),
             nonce,
             mosId,
-            MosaicProperties.create(props),
-            NetworkType.MIJIN_TEST
+            MosaicFlags.create(supplyMutable, transferable, false),
+            divisibility,
+            UInt64.fromUint(100000), // 100'000 blocks
+            this.networkType,
+            UInt64.fromUint(1000000)
         );
 
         return createTx;
@@ -327,9 +320,10 @@ export default class extends BaseCommand {
         const supplyTx = MosaicSupplyChangeTransaction.create(
             Deadline.create(),
             mosaicId,
-            MosaicSupplyType.Increase,
+            MosaicSupplyChangeAction.Increase,
             initialSupply,
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000)
         );
 
         return supplyTx;
@@ -342,7 +336,7 @@ export default class extends BaseCommand {
     ): Transaction[]
     {
         const namespaceId = new NamespaceId(namespaceName);
-        const actionType  = AliasActionType.Link;
+        const actionType  = AliasAction.Link;
 
         console.log('Step 3) Creating MosaicAliasTransaction with for namespace: ' + namespaceName);
         const aliasTx = MosaicAliasTransaction.create(
@@ -350,7 +344,8 @@ export default class extends BaseCommand {
             actionType,
             namespaceId,
             mosaicId,
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000)
         );
 
         return [

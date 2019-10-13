@@ -1,4 +1,3 @@
-
 /**
  * 
  * Copyright 2019 Grégory Saive for NEM (github.com/nemtech)
@@ -15,26 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const description = `
-                      ____
- _ __   ___ _ __ ___ |___ \\
-| \'_ \\ / _ \\ \'_ \` _ \\  __) |
-| | | |  __/ | | | | |/ __/
-|_| |_|\\___|_| |_| |_|_____|
+export class SandboxConstants {
 
-`;
+    static readonly CURRENCY_MOSAIC_NAME: string = 'nem.xem';
+    static readonly HARVEST_MOSAIC_NAME: string = 'nem.xem';
 
-export const subcommands = [
-    {
-        name: 'convert',
-        brief: 'Data converter',
-    },
-    {
-        name: 'transaction',
-        brief: 'Transaction announcement tester',
-    },
-    {
-        name: 'reader',
-        brief: 'Blockchain data reader',
-    },
-];
+}

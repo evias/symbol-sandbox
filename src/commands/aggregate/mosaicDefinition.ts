@@ -19,33 +19,17 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
     MosaicId,
-    MosaicService,
     AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     MosaicNonce,
-    Address,
     Deadline,
-    Mosaic,
-    PlainMessage,
     TransactionHttp,
-    TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
     AggregateTransaction,
     MosaicDefinitionTransaction,
-    MosaicProperties,
+    MosaicFlags,
     MosaicSupplyChangeTransaction,
-    MosaicSupplyType
+    MosaicSupplyChangeAction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -70,6 +54,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
         // add a block monitor
         this.monitorBlocks();
 
@@ -92,22 +77,21 @@ export default class extends BaseCommand {
             Deadline.create(),
             nonce,
             mosId,
-            MosaicProperties.create({
-                supplyMutable: true,
-                transferable: true,
-                divisibility: 3,
-                duration: UInt64.fromUint(1000000), // 1'000'000 blocks
-            }),
-            NetworkType.MIJIN_TEST
+            MosaicFlags.create(true, true, false),
+            3,
+            UInt64.fromUint(100000), // 100'000 blocks
+            this.networkType,
+            UInt64.fromUint(1000000)
         );
 
         // STEP 2: MosaicSupplyChange
         const supplyTx = MosaicSupplyChangeTransaction.create(
             Deadline.create(),
             createTx.mosaicId,
-            MosaicSupplyType.Increase,
+            MosaicSupplyChangeAction.Increase,
             UInt64.fromUint(1000000),
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000)
         );
 
         // STEP 3: create aggregate
@@ -121,8 +105,9 @@ export default class extends BaseCommand {
                     createTx.toAggregate(accountInfo.publicAccount),
                     supplyTx.toAggregate(accountInfo.publicAccount)
                 ],
-                NetworkType.MIJIN_TEST,
-                []
+                this.networkType,
+                [],
+                UInt64.fromUint(1000000)
             );
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
@@ -133,7 +118,7 @@ export default class extends BaseCommand {
             return transactionHttp.announce(signedTransaction).subscribe(() => {
                 console.log('Transaction announced correctly');
                 console.log('Hash:   ', signedTransaction.hash);
-                console.log('Signer: ', signedTransaction.signer);
+                console.log('Signer: ', signedTransaction.signerPublicKey);
             }, (err) => {
                 let text = '';
                 text += 'testMosaicCreationAction() - Error';

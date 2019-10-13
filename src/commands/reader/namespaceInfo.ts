@@ -18,18 +18,9 @@
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
-    UInt64,
-    Account,
-    Address,
-    MosaicId,
-    MosaicHttp,
-    NetworkType,
     NamespaceHttp,
     NamespaceId
 } from 'nem2-sdk';
-
-import {from as observableFrom, Observable, merge} from 'rxjs';
-import {combineLatest, catchError} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
@@ -81,6 +72,7 @@ export default class extends BaseCommand {
         if (peerUrl.length) {
             this.endpointUrl = peerUrl;
         }
+        await this.setupConfig();
 
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
 

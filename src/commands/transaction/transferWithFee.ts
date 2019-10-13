@@ -19,35 +19,18 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
-    AccountHttp,
-    MosaicHttp,
     NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     Address,
     Deadline,
     Mosaic,
     PlainMessage,
     TransactionHttp,
     TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
-    Listener,
-    EmptyMessage,
-    AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    NamespaceId
+    NamespaceId,
 } from 'nem2-sdk';
 
+import {SandboxConstants} from '../../constants';
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -70,6 +53,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         // add a block monitor
         this.monitorBlocks();
@@ -88,7 +72,7 @@ export default class extends BaseCommand {
 
         // read mosaic Id from namespace name
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
-        const namespaceId = new NamespaceId('cat.currency');
+        const namespaceId = new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME);
         const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
 
         // attach mosaicId !
@@ -103,7 +87,7 @@ export default class extends BaseCommand {
             recipient, 
             mosaics, 
             message, 
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             new UInt64([5000000, 0]), // set 5 `cat.currency` fee
         );
 
@@ -115,7 +99,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Transaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'testTransferAction() - Error';

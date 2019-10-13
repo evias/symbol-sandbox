@@ -76,9 +76,9 @@ export default class extends BaseCommand {
             addr = Address.createFromRawAddress(raw);
         }
         else if (pub.length) {
-            addr = Address.createFromPublicKey(pub, NetworkType.MIJIN_TEST);
+            addr = Address.createFromPublicKey(pub, this.networkType);
             networks += 'Mijin:\t\t' + Address.createFromPublicKey(pub, NetworkType.MIJIN).plain() + '\n';
-            networks += 'Mijin Test:\t' + Address.createFromPublicKey(pub, NetworkType.MIJIN_TEST).plain() + '\n';
+            networks += 'Mijin Test:\t' + Address.createFromPublicKey(pub, this.networkType).plain() + '\n';
             networks += 'Mainnet:\t' + Address.createFromPublicKey(pub, NetworkType.MAIN_NET).plain() + '\n';
             networks += 'Testnet:\t' + Address.createFromPublicKey(pub, NetworkType.TEST_NET).plain() + '\n';
         }

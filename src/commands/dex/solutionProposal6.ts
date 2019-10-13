@@ -29,13 +29,14 @@ import {
     TransferTransaction,
     PublicAccount,
     AggregateTransaction,
-    ModifyMultisigAccountTransaction,
+    MultisigAccountModificationTransaction,
     MultisigCosignatoryModification,
-    MultisigCosignatoryModificationType,
+    CosignatoryModificationAction,
     SignedTransaction,
     TransactionMapping,
 } from 'nem2-sdk';
 
+import {SandboxConstants} from '../../constants'  
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -70,6 +71,7 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) 
     {
+        await this.setupConfig();
         let peerUrl = this.endpointUrl;
         try {
             peerUrl = OptionsResolver(options,
@@ -95,8 +97,8 @@ export default class extends BaseCommand {
         // ----------------------------------------
         // Step 2: Generate ephemeral SDEXX account
         // ----------------------------------------
-        const sdexxAccount = Account.generateNewAccount(NetworkType.MIJIN_TEST);
-        const sdexxAddress = Address.createFromPublicKey(sdexxAccount.publicAccount.publicKey, NetworkType.MIJIN_TEST);
+        const sdexxAccount = Account.generateNewAccount(this.networkType);
+        const sdexxAddress = Address.createFromPublicKey(sdexxAccount.publicAccount.publicKey, this.networkType);
 
         console.log('');
         console.log("SDEXX Private Key: ", sdexxAccount.privateKey.toString());
@@ -145,7 +147,7 @@ export default class extends BaseCommand {
         //         [makerFillTx.toAggregate(makerAccount.publicAccount)], // ETx1 signed by Maker
         //         [makerSettlementTx.toAggregate(sdexxAccount.publicAccount)] // ETx2 signed by SDEXX
         //     ),
-        //     NetworkType.MIJIN_TEST,
+        //     this.networkType,
         //     []
         // );
 
@@ -176,7 +178,7 @@ export default class extends BaseCommand {
             [].concat(
                 [takerFillTx.toAggregate(takerAccount.publicAccount)], // ETx3 signed by Taker
             ),
-            NetworkType.MIJIN_TEST,
+            this.networkType,
             []
         );
 
@@ -232,7 +234,7 @@ export default class extends BaseCommand {
                     [makerSettlementTx.toAggregate(sdexxAccount.publicAccount)], // ETx2 signed by SDEXX
                     [takerSettlementTx.toAggregate(sdexxAccount.publicAccount)], // ETx3 signed by SDEXX
                 ),
-                NetworkType.MIJIN_TEST,
+                this.networkType,
                 []
             );
 
@@ -258,7 +260,7 @@ export default class extends BaseCommand {
             return transactionHttp.announce(signedTransactionA).subscribe(() => {
                 console.log('broadcastTradeSettlement: transactionA announced correctly');
                 console.log('Hash:   ', signedTransactionA.hash);
-                console.log('Signer: ', signedTransactionA.signer);
+                console.log('Signer: ', signedTransactionA.signerPublicKey);
             }, (err) => {
                 let text = '';
                 text += 'broadcastTradeSettlement() - Error with transactionA (Maker Fill)';
@@ -273,7 +275,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId('cat.currency'), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)));
 
         console.log('getMakerOrderBookFillTransaction: Creating TransferTransaction for cat.currency from Maker to SDEXX.');
         console.log('getMakerOrderBookFillTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -283,7 +285,7 @@ export default class extends BaseCommand {
             orderBookAddress,
             mosaics,
             PlainMessage.create('Sell Order 10 cat.currency for 10 cat.harvest'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return orderBookFillTx;
@@ -295,7 +297,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId('cat.harvest'), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.HARVEST_MOSAIC_NAME), UInt64.fromUint(10)));
 
         console.log('getMakerSettlementTransaction: Creating TransferTransaction for cat.harvest (Maker)');
         console.log('getMakerSettlementTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -305,7 +307,7 @@ export default class extends BaseCommand {
             makerAddress,
             mosaics,
             PlainMessage.create('Settlement of 10 cat.harvest for Maker'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return makerSettlementTx;
@@ -314,24 +316,24 @@ export default class extends BaseCommand {
     public getTakerOwnershipTransfer(
         takerAccount: PublicAccount,
         orderBookAddress: Address,
-    ): ModifyMultisigAccountTransaction
+    ): MultisigAccountModificationTransaction
     {
         const modifications = [
             new MultisigCosignatoryModification(
-                MultisigCosignatoryModificationType.Add,
+                CosignatoryModificationAction.Add,
                 takerAccount,
             ),
         ];
 
-        console.log('getTakerOwnershipTransfer: Creating ModifyMultisigAccountTransaction for SDEXX ownership transfer to Taker.');
+        console.log('getTakerOwnershipTransfer: Creating MultisigAccountModificationTransaction for SDEXX ownership transfer to Taker.');
         console.log('getTakerOwnershipTransfer: Modifications: ' + JSON.stringify(modifications));
 
-        const takerOwnershipTx = ModifyMultisigAccountTransaction.create(
+        const takerOwnershipTx = MultisigAccountModificationTransaction.create(
             Deadline.create(),
             1, // 1of1
             1, // 1of1
             modifications,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return takerOwnershipTx;
@@ -343,7 +345,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId('cat.harvest'), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.HARVEST_MOSAIC_NAME), UInt64.fromUint(10)));
 
         console.log('getMakerOrderBookFillTransaction: Creating TransferTransaction for cat.harvest from Taker to SDEXX.');
         console.log('getMakerOrderBookFillTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -353,7 +355,7 @@ export default class extends BaseCommand {
             orderBookAddress,
             mosaics,
             PlainMessage.create('Buy Order 10 cat.currency for 10 cat.harvest'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return orderBookFillTx;
@@ -365,7 +367,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId('cat.currency'), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)));
 
         console.log('getTakerSettlementTransaction: Creating TransferTransaction for cat.currency (Taker)');
         console.log('getTakerSettlementTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -375,7 +377,7 @@ export default class extends BaseCommand {
             takerAddress,
             mosaics,
             PlainMessage.create('Settlement of 10 cat.currency for Taker'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return takerSettlementTx;

@@ -58,6 +58,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
 
         let addr;
         addr = OptionsResolver(options,
@@ -79,7 +80,6 @@ export default class extends BaseCommand {
             let text = '';
             text += chalk.green('Address:\t') + chalk.bold(address.plain()) + '\n';
             text += '-'.repeat(20) + '\n\n';
-            text += 'Meta Data:\t' + JSON.stringify(accountInfo.meta) + '\n';
             text += 'Address:\t' + accountInfo.address.plain() + '\n';
             text += 'Address #:\t' + accountInfo.addressHeight.compact() + '\n';
             text += 'Public Key:\t' + accountInfo.publicKey + '\n';
@@ -107,7 +107,7 @@ export default class extends BaseCommand {
             return Address.createFromRawAddress(addressOrPub);
         }
         else if (addressOrPub.length === 64) {
-            return Address.createFromPublicKey(addressOrPub, NetworkType.MIJIN_TEST);
+            return Address.createFromPublicKey(addressOrPub, this.networkType);
         }
 
         throw new ExpectedError("parameter addressOrPub must be either of 40 or 64 characters.");

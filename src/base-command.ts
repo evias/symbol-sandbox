@@ -24,14 +24,19 @@ import {
     Listener,
     NetworkType,
     UInt64,
+    NetworkHttp,
 } from 'nem2-sdk';
 
 export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
 
-    //public endpointUrl = "http://catapult.evias.be:3000";
-    public endpointUrl = "http://localhost:3000";
-    public generationHash = "167FF7C1CC4C2D536EDB7497608001C3A7E9B91D90FAB2A4ECFE6424A489D58E";
+    //TESTNET MIJIN_TEST public endpointUrl = "http://api-01.mt.eu-central-1.nemtech.network:3000";
+    //TESTNET PUBLIC_TEST public endpointUrl = "http://api-01-edge-xp.us-west-1.nemtech.network:3000";
+    public endpointUrl = "http://api-01.mt.eu-central-1.nemtech.network:3000";
+    //TESTNET MIJIN_TEST public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
+    //TESTNET PUBLIC_TEST public generationHash = "988C4CDCE4D188013C13DE7914C7FD4D626169EF256722F61C52EFBE06BD5A2C";
+    public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
+    public networkType: NetworkType;
     protected accounts = {
         "tester1": {
             "address": "SBXTSKD2FDOP4A37ANWSWCOKGPIBGYYK5U3CIYMZ",
@@ -61,13 +66,21 @@ export abstract class BaseCommand extends Command {
         this.spinner.setSpinnerString('|/-\\');
     }
 
+    public async setupConfig() {
+        const networkHttp = new NetworkHttp(this.endpointUrl)
+        this.networkType = await networkHttp.getNetworkType().toPromise()
+
+        //XXX read generation hash from node
+        //XXX read currency mosaic from node
+    }
+
     public getAccount(name: string): Account {
-        return Account.createFromPrivateKey(this.accounts[name].privateKey, NetworkType.MIJIN_TEST);
+        return Account.createFromPrivateKey(this.accounts[name].privateKey, this.networkType);
     }
 
     public getAddress(name: string): Address {
         const acct = this.getAccount(name);
-        return Address.createFromPublicKey(acct.publicKey, NetworkType.MIJIN_TEST);
+        return Address.createFromPublicKey(acct.publicKey, this.networkType);
     }
 
     private getPrivateKey(name: string): string {

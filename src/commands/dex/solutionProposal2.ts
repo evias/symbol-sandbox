@@ -35,8 +35,10 @@ import {
     HashType,
     SHA3Hasher,
     Convert,
+    SignSchema,
 } from 'nem2-sdk';
 
+import {SandboxConstants} from '../../constants';
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -71,6 +73,7 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) 
     {
+        await this.setupConfig();
         let peerUrl = this.endpointUrl;
         try {
             peerUrl = OptionsResolver(options,
@@ -96,7 +99,7 @@ export default class extends BaseCommand {
         // ----------------------------------------
         // Step 2: Generate ephemeral SDEXX account
         // ----------------------------------------
-        const sdexxAccount = Account.generateNewAccount(NetworkType.MIJIN_TEST);
+        const sdexxAccount = Account.generateNewAccount(this.networkType);
         const sdexxAddress = sdexxAccount.address;
 
         console.log('');
@@ -133,7 +136,7 @@ export default class extends BaseCommand {
         return await transactionHttp.announce(signedMakerTx).subscribe(async () => {
             console.log('Announced Maker Fill Transaction');
             console.log('Hash:   ', signedMakerTx.hash);
-            console.log('Signer: ', signedMakerTx.signer);
+            console.log('Signer: ', signedMakerTx.signerPublicKey);
 
             // ---------------------------------------------------
             // Step 5: Prepare Taker Order Book Fill
@@ -150,7 +153,7 @@ export default class extends BaseCommand {
             return transactionHttp.announce(signedTakerTx).subscribe(async () => {
                 console.log('Announced Taker Fill Transaction');
                 console.log('Hash:   ', signedTakerTx.hash);
-                console.log('Signer: ', signedTakerTx.signer);
+                console.log('Signer: ', signedTakerTx.signerPublicKey);
 
                 // -----------------------------------------------
                 // Step 7: Wait for Order Book Fill CONFIRMATION
@@ -168,7 +171,7 @@ export default class extends BaseCommand {
                     return transactionHttp.announce(signedMakerProofTx).subscribe(async () => {
                         console.log('Announced Maker Proof Transaction');
                         console.log('Hash:   ', signedMakerProofTx.hash);
-                        console.log('Signer: ', signedMakerProofTx.signer);
+                        console.log('Signer: ', signedMakerProofTx.signerPublicKey);
 
                         // -----------------------------------------------
                         // Step 9: Sign & Broadcast Taker Proof
@@ -179,7 +182,7 @@ export default class extends BaseCommand {
                         return transactionHttp.announce(signedTakerProofTx).subscribe(async () => {
                             console.log('Announced Taker Proof Transaction');
                             console.log('Hash:   ', signedTakerProofTx.hash);
-                            console.log('Signer: ', signedTakerProofTx.signer);
+                            console.log('Signer: ', signedTakerProofTx.signerPublicKey);
 
                             // -----------------------------------------------
                             // Step 10: Wait for Proofs CONFIRMATION
@@ -198,7 +201,7 @@ export default class extends BaseCommand {
                                         [makerSettleTx.toAggregate(sdexxAccount.publicAccount)],
                                         [takerSettleTx.toAggregate(sdexxAccount.publicAccount)],
                                     ),
-                                    NetworkType.MIJIN_TEST,
+                                    this.networkType,
                                     []
                                 );
 
@@ -248,7 +251,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedSettlementTx).subscribe(() => {
             console.log('Announced Settlement Aggregate Transaction');
             console.log('Hash:   ', signedSettlementTx.hash);
-            console.log('Signer: ', signedSettlementTx.signer);
+            console.log('Signer: ', signedSettlementTx.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'broadcastTradeSettlement() - Error';
@@ -264,7 +267,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.harvest';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -275,12 +278,12 @@ export default class extends BaseCommand {
 
         const orderBookFillTx = SecretLockTransaction.create(
             Deadline.create(),
-            new Mosaic(new NamespaceId('cat.currency'), UInt64.fromUint(10)),
+            new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)),
             UInt64.fromUint(10), // 10 blocks
             HashType.Op_Sha3_256,
             secretHex,
             orderBookAddress,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return orderBookFillTx;
@@ -294,7 +297,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.currency';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -310,7 +313,7 @@ export default class extends BaseCommand {
             secretHex,
             orderBookAddress,
             proof,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return proofTx;
@@ -321,7 +324,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId('cat.harvest'), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.HARVEST_MOSAIC_NAME), UInt64.fromUint(10)));
 
         console.log('getMakerSettlementTransaction: Creating TransferTransaction for cat.currency from SDEXX to Maker.');
         console.log('getMakerSettlementTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -331,7 +334,7 @@ export default class extends BaseCommand {
             makerAddress,
             mosaics,
             PlainMessage.create('Settle Trade with 10 cat.harvest for Maker'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return makerSettleTx;
@@ -345,7 +348,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.currency';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -361,7 +364,7 @@ export default class extends BaseCommand {
             HashType.Op_Sha3_256,
             secretHex,
             orderBookAddress,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return orderBookFillTx;
@@ -375,7 +378,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.harvest';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -391,7 +394,7 @@ export default class extends BaseCommand {
             secretHex,
             orderBookAddress,
             proof,
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return proofTx;
@@ -402,7 +405,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId('cat.currency'), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)));
 
         console.log('getTakerSettlementTransaction: Creating TransferTransaction for cat.currency from SDEXX to Taker.');
         console.log('getTakerSettlementTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -412,7 +415,7 @@ export default class extends BaseCommand {
             takerAddress,
             mosaics,
             PlainMessage.create('Settle Trade with 10 cat.currency for Taker'),
-            NetworkType.MIJIN_TEST
+            this.networkType
         );
 
         return takerSettleTx;

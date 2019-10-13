@@ -19,36 +19,23 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
-    Account,
     NetworkType,
-    MosaicId,
-    MosaicService,
     AccountHttp,
-    MosaicHttp,
-    NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
     Address,
     Deadline,
     Mosaic,
-    PlainMessage,
     TransactionHttp,
     TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
-    PublicAccount,
-    TransactionType,
     Listener,
     EmptyMessage,
     AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType
+    NamespaceId,
+    PlainMessage,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
+import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -69,6 +56,7 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
+        await this.setupConfig();
         // add a block monitor
         this.monitorBlocks();
 
@@ -85,23 +73,25 @@ export default class extends BaseCommand {
         const account = this.getAccount("tester1");
 
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(NetworkCurrencyMosaic.NAMESPACE_ID, UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)));
 
         // TEST 3: send mosaic creation transaction
         const fundsTx1 = TransferTransaction.create(
             Deadline.create(),
             recipient,
             mosaics,
-            EmptyMessage,
-            NetworkType.MIJIN_TEST
+            PlainMessage.create("Testing aggregate transfer"),
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const fundsTx2 = TransferTransaction.create(
             Deadline.create(),
             recipient,
             mosaics,
-            EmptyMessage,
-            NetworkType.MIJIN_TEST
+            PlainMessage.create("Testing aggregate transfer"),
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
         );
 
         const accountHttp = new AccountHttp(this.endpointUrl);
@@ -110,7 +100,7 @@ export default class extends BaseCommand {
                 Deadline.create(),
                 [fundsTx1.toAggregate(accountInfo.publicAccount),
                  fundsTx2.toAggregate(accountInfo.publicAccount)],
-                NetworkType.MIJIN_TEST, []);
+                this.networkType, [], UInt64.fromUint(1000000)); // 1 XEM fee
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
 
@@ -121,7 +111,7 @@ export default class extends BaseCommand {
                 transactionHttp.announce(signedTransaction).subscribe(() => {
                     console.log('Announced aggregate complete transaction');
                     console.log('Hash:   ', signedTransaction.hash);
-                    console.log('Signer: ', signedTransaction.signer, '\n');
+                    console.log('Signer: ', signedTransaction.signerPublicKey, '\n');
                 }, (err) => {
                     let text = '';
                     text += 'testAggregateCompleteAction() - Error';

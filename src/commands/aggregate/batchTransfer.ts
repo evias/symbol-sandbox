@@ -22,36 +22,18 @@ import {
     Account,
     NetworkType,
     MosaicId,
-    MosaicService,
     AccountHttp,
-    MosaicHttp,
     NamespaceHttp,
-    MosaicView,
-    MosaicInfo,
-    MosaicNonce,
     Address,
     Deadline,
     Mosaic,
     NamespaceId,
-    PlainMessage,
     TransactionHttp,
     TransferTransaction,
-    LockFundsTransaction,
-    NetworkCurrencyMosaic,
     PublicAccount,
     Transaction,
-    TransactionType,
-    Listener,
     EmptyMessage,
     AggregateTransaction,
-    MosaicDefinitionTransaction,
-    MosaicProperties,
-    MosaicSupplyChangeTransaction,
-    MosaicSupplyType,
-    MosaicAliasTransaction,
-    AliasActionType,
-    AliasType,
-    RegisterNamespaceTransaction,
     InnerTransaction,
 } from 'nem2-sdk';
 
@@ -91,6 +73,7 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) 
     {
+        await this.setupConfig();
         let file;
         let amount;
         let mosaic;
@@ -145,8 +128,9 @@ export default class extends BaseCommand {
         const aggregateTx = AggregateTransaction.createComplete(
             Deadline.create(),
             transferTransactions,
-            NetworkType.MIJIN_TEST,
-            []
+            this.networkType,
+            [],
+            UInt64.fromUint(1000000)
         );
 
         const signedTransaction = account.sign(aggregateTx, this.generationHash);
@@ -156,7 +140,7 @@ export default class extends BaseCommand {
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Transaction announced correctly');
             console.log('Hash:   ', signedTransaction.hash);
-            console.log('Signer: ', signedTransaction.signer);
+            console.log('Signer: ', signedTransaction.signerPublicKey);
         }, (err) => {
             let text = '';
             text += 'broadcastBatchTransfers() - Error';
@@ -186,7 +170,8 @@ export default class extends BaseCommand {
             Address.createFromRawAddress(recipientAddress),
             [new Mosaic(mosaicId, amountFormat)],
             EmptyMessage,
-            NetworkType.MIJIN_TEST
+            this.networkType,
+            UInt64.fromUint(1000000)
         );
 
         return transferTx.toAggregate(publicAccount);
