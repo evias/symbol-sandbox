@@ -80,10 +80,10 @@ export default class extends BaseCommand {
          * ```
          */
         const proof = convert.utf8ToHex(secret);
-        secret = sha3_256(secret).toUpperCase();
+        const hashd = sha3_256(secret);
 
         // Send secret proof transaction
-        return await this.sendSecretProof(secret, proof);
+        return await this.sendSecretProof(hashd, proof);
     }
 
     public async sendSecretProof(

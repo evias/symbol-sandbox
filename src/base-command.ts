@@ -30,7 +30,11 @@ import {
 export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
 
-    public endpointUrl = "http://api-01.mt.us-east-1.nemtech.network:3000";
+    //TESTNET MIJIN_TEST public endpointUrl = "http://api-01.mt.eu-central-1.nemtech.network:3000";
+    //TESTNET PUBLIC_TEST public endpointUrl = "http://api-01-edge-xp.us-west-1.nemtech.network:3000";
+    public endpointUrl = "http://api-01.mt.eu-central-1.nemtech.network:3000";
+    //TESTNET MIJIN_TEST public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
+    //TESTNET PUBLIC_TEST public generationHash = "988C4CDCE4D188013C13DE7914C7FD4D626169EF256722F61C52EFBE06BD5A2C";
     public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
     public networkType: NetworkType;
     protected accounts = {

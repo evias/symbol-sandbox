@@ -110,10 +110,10 @@ export default class extends BaseCommand {
          * ```
          */
         const proof = convert.utf8ToHex(secret);
-        secret = sha3_256(secret).toUpperCase();
+        const hashd = sha3_256(secret);
 
         // Send secret lock transaction
-        return await this.sendSecretLock(recipient, duration, amount, secret);
+        return await this.sendSecretLock(recipient, duration, amount, hashd);
     }
 
     public async sendSecretLock(
