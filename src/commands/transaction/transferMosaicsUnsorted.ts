@@ -42,13 +42,18 @@ export class CommandOptions extends BaseOptions {
     address: string;
     @option({
         flag: 'a',
-        description: 'Absolute amount of nem.xem',
+        description: 'Absolute amount of nem.xem (divisibility 6)',
     })
     amount: number;
+    @option({
+        flag: 'g',
+        description: 'Absolute amount of greg.token (divisibility 0)',
+    })
+    amountG: number;
 }
 
 @command({
-    description: 'Send TransferTransaction',
+    description: 'Send TransferTransaction with multiple mosaics unordered',
 })
 export default class extends BaseCommand {
 
@@ -63,6 +68,7 @@ export default class extends BaseCommand {
         let recipientAddress
         let recipient: Address
         let amount: number
+        let amountG: number
 
         try {
             recipientAddress = OptionsResolver(options,
@@ -86,18 +92,31 @@ export default class extends BaseCommand {
             amount = 100000000 // 100 nem.xem
         }
 
+        try {
+            amountG = parseInt(OptionsResolver(options,
+                'amountG',
+                () => { return ''; },
+                'Enter an amount of greg.token: '))
+            if (isNaN(amountG) || amountG < 0) {
+                amountG = 1 // 1 greg.token
+            }
+        } catch (err) {
+            amountG = 1 // 1 greg.token
+        }
+
         // add a block monitor
         this.monitorBlocks();
 
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
-        return await this.sendTransferTo(recipient, amount);
+        return await this.sendTransferTo(recipient, amount, amountG);
     }
 
     public async sendTransferTo(
         recipient: Address,
-        amount: number
+        amount: number,
+        amountG: number
     ): Promise<Object>
     {
         // TEST 2: send transfer with alias `cat.currency`
@@ -105,15 +124,18 @@ export default class extends BaseCommand {
         let relative = amount ? amount / Math.pow(10, 6) : amount;
 
         // read mosaic Id from namespace name
-        const namespaceHttp = new NamespaceHttp(this.endpointUrl);
-        const namespaceId = new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME);
-        const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
+        const namespaceHttp = new NamespaceHttp(this.endpointUrl)
+        const namespaceId = new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME)
+        const sndNamespaceId = new NamespaceId('greg.token')
+        const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise()
+        const mosaicIdG = await namespaceHttp.getLinkedMosaicId(sndNamespaceId).toPromise()
 
         // attach mosaicId !
-        mosaics.push(new Mosaic(mosaicId, UInt64.fromUint(amount)));
+        mosaics.push(new Mosaic(mosaicIdG, UInt64.fromUint(amountG))); // intentionally push "6805AD01F67E0097"
+        mosaics.push(new Mosaic(mosaicId, UInt64.fromUint(amount))); // before "308F144790CD7BC4"
 
         const account   = this.getAccount("tester1");
-        const message   = PlainMessage.create("Simple transfer of " + amount + " nem.xem");
+        const message   = PlainMessage.create("Simple transfer of " + amount + " nem.xem and " + amountG + " greg.token");
         const deadline  = Deadline.create();
 
         // prepare SDK transaction and sign it
