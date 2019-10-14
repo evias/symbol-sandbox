@@ -34,6 +34,7 @@ import {
     CosignatureTransaction,
     AccountHttp,
     Listener,
+    BlockHttp,
 } from 'nem2-sdk';
 import {from as observableFrom} from 'rxjs';
 import {filter, map, mergeMap, first} from 'rxjs/operators';
@@ -191,8 +192,15 @@ export default class extends BaseCommand {
         // ----------------------------------------------------------------------------
 
         const blockListener = new Listener(this.endpointUrl)
+        const blockHttp = new BlockHttp(this.endpointUrl)
+        const lockFundsHash = signedLockFundsTx.hash
+
+        // This step should only happen after the lock funds got confirmed.
         return blockListener.open().then(() => {
-            return blockListener.newBlock().pipe(first()).subscribe(async (block) => {
+            return blockListener.newBlock().pipe(
+                mergeMap(_ => blockHttp.getBlockTransactions(_.height.compact())),
+                filter(txes => txes.find(tx => tx.transactionInfo.hash === lockFundsHash) !== undefined)
+            ).subscribe(block => {
                 transactionHttp.announceAggregateBonded(signedAggregateTx).subscribe(() => {
                     console.log('Announced aggregate bonded transaction with multisig account modification');
                     console.log('Hash:   ', signedAggregateTx.hash);
