@@ -75,7 +75,7 @@ export class TransactionSigner extends Service {
 
             // create URI
             const uri = new TransactionURI(
-                payload,
+                payload.payload,
                 this.catapultReader.GENERATION_HASH,
                 this.catapultReader.URL
             );

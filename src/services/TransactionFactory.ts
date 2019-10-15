@@ -19,6 +19,13 @@ import {
     NamespaceRegistrationTransaction,
     Transaction,
     UInt64,
+    MosaicDefinitionTransaction,
+    MosaicFlags,
+    MosaicId,
+    MosaicNonce,
+    MosaicSupplyChangeTransaction,
+    MosaicSupplyChangeAction,
+    PublicAccount,
 } from 'nem2-sdk';
 
 // internal dependencies
@@ -72,11 +79,62 @@ export class TransactionFactory extends Service {
         return [].concat(rootNamespacesTxes, subNamespacesTxes);
     }
 
-    public getMosaicTransactions(mosaics: any[]): Transaction[] {
-        //XXX each MosaicDefinitionTransaction
-        //XXX each MosaicSupplyChangeTransaction
+    public getMosaicTransactions(mosaicsWithSupply: any[]): Transaction[] {
+        // shortcuts
+        const ONE_YEAR_BLOCKS = (365 * 24 * 60 * 60) / 15; //XXX read block_target_seconds
 
-        return [];
+        let mosaicConfigurationTxes: Transaction[] = [];
+        mosaicsWithSupply.map((mosaicWithSupply) => {
+            const {definition, supply} = mosaicWithSupply
+
+            const ownerPublicKey = definition.creator.toUpperCase()
+            const ownerPubAccount = PublicAccount.createFromPublicKey(
+                ownerPublicKey,
+                this.catapultReader.NETWORK_ID
+            )
+
+            // prepare mosaic flags / properties
+            const isMutableSupply = definition.properties[2].value === 'true'
+            const isTransferable = definition.properties[3].value === 'true'
+            const mosaicFlags = MosaicFlags.create(
+                isMutableSupply, // supplyMutable
+                isTransferable, // transferable
+                false // restrictable
+            )
+            const divisibility = parseInt(definition.properties[0].value)
+            const mosaicSupply = supply
+
+            // create nonce and id
+            const mosaicNonce = MosaicNonce.createRandom();
+            const mosaicId = MosaicId.createFromNonce(mosaicNonce, ownerPubAccount);
+
+            // create mosaic definition
+            const definitionTx =  MosaicDefinitionTransaction.create(
+                Deadline.create(),
+                mosaicNonce,
+                mosaicId,
+                mosaicFlags,
+                divisibility,
+                UInt64.fromUint(ONE_YEAR_BLOCKS), // 100'000 blocks
+                this.catapultReader.NETWORK_ID,
+                UInt64.fromUint(1000000), // 1 XEM fee
+            );
+
+            // create mosaic supply
+            const supplyTx = MosaicSupplyChangeTransaction.create(
+                Deadline.create(),
+                mosaicId,
+                MosaicSupplyChangeAction.Increase,
+                UInt64.fromUint(mosaicSupply),
+                this.catapultReader.NETWORK_ID,
+                UInt64.fromUint(1000000), // 1 XEM fee
+            );
+
+            mosaicConfigurationTxes.push(definitionTx)
+            mosaicConfigurationTxes.push(supplyTx)
+        })
+
+        return mosaicConfigurationTxes;
     }
 
     public getMultisigTransactions(cosignatories: any[]): Transaction[] {

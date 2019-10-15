@@ -52,6 +52,9 @@ export default class extends MigrationCommand {
     async execute(options: MigrationOptions) 
     {
         const params = await this.readParameters(options);
+        if (params === false) {
+            return ;
+        }
 
         // read mosaic definitions owned by account on NIS1
         this.spinner.start();
@@ -59,6 +62,14 @@ export default class extends MigrationCommand {
         this.spinner.stop(true);
 
         console.log(chalk.green(`Found ${mosaics.length} mosaic definitions.`));
+
+        if (! mosaics.length) {
+            return ;
+        }
+
+        mosaics.map((mosaic) => {
+            console.log(chalk.yellow(`\t* ${mosaic.definition.id.namespaceId}:${mosaic.definition.id.name}`))
+        })
 
         // create Catapult transactions
         const factory = new TransactionFactory(this.catapultReader);

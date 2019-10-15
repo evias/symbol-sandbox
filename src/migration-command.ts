@@ -67,6 +67,7 @@ export abstract class MigrationCommand extends BaseCommand {
         if (params['peerUrl'] && params['peerUrl'].length) {
             this.endpointUrl = params['peerUrl'];
         }
+        // else use testnet (set in BaseCommand)
 
         // PARAM 2: NIS1 Endpoint URL
         try {
@@ -101,25 +102,32 @@ export abstract class MigrationCommand extends BaseCommand {
 
         this.spinner.start();
 
-        // read networkId from NIS endpoint
-        const nisNetworkId = await NISDataReader.getNetworkId(this.nisUrl);
+        try {
+            // read networkId from NIS endpoint
+            const nisNetworkId = await NISDataReader.getNetworkId(this.nisUrl);
 
-        // read networkId from Catapult endpoint
-        const catNetworkId = await CATDataReader.getNetworkId(this.endpointUrl);
-        const catHash = await CATDataReader.getGenerationHash(this.endpointUrl);
+            // read networkId from Catapult endpoint
+            const catNetworkId = await CATDataReader.getNetworkId(this.endpointUrl);
+            const catHash = await CATDataReader.getGenerationHash(this.endpointUrl);
 
-        // initialize services and load accounts
-        this.nisReader = new NISDataReader(this.nisUrl, 7890, nisNetworkId);
-        this.catapultReader = new CATDataReader(this.endpointUrl, 3000, catNetworkId, catHash);
-        this.loadAccounts(params['privateKey']);
-        this.spinner.stop(true);
+            // initialize services and load accounts
+            this.nisReader = new NISDataReader(this.nisUrl, 7890, nisNetworkId);
+            this.catapultReader = new CATDataReader(this.endpointUrl, 3000, catNetworkId, catHash);
+            this.loadAccounts(params['privateKey']);
+            this.spinner.stop(true);
 
-        console.log('');
-        console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
-        console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
-        console.log('');
+            console.log('');
+            console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
+            console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
+            console.log('');
 
-        return params;
+            return params;
+        }
+        catch (e) {
+            console.error("Node configuration retrieval error")
+            console.error(e)
+            return false
+        }
     }
 
     protected loadAccounts(privateKey: string): boolean {

@@ -58,7 +58,15 @@ export default class extends MigrationCommand {
         const namespaces = await this.nisReader.getCreatedNamespaces(this.nisAddress);
         this.spinner.stop(true);
 
-        console.log(chalk.green(`Found ${namespaces.length} namespaces.`));
+        console.log(chalk.green(`Found ${namespaces.length} namespaces:`));
+
+        if (! namespaces.length) {
+            return ;
+        }
+
+        namespaces.map((namespace) => {
+            console.log(chalk.yellow(`\t* ${namespace.fqn}`))
+        })
 
         // create Catapult transactions
         const factory = new TransactionFactory(this.catapultReader);

@@ -37,13 +37,26 @@ export class CATDataReader extends Service {
     }
 
     public static async getNetworkId(url: string) {
-        const response: any = await axios.get(url.replace(/\/$/, '') + '/node/info');
-        if (!response || !response.data || !response.networkIdentifier) {
+        const response: any = await axios.get(url.replace(/\/$/, '') + '/network');
+        if (!response || !response.data || !response.name) {
             return DEFAULT_CAT_NETWORK_ID;
         }
 
         // parse network id from endpoint
-        return parseInt(response.data.networkIdentifier);
+        switch (response.data.name) {
+            default:
+            case 'mijinTest': 
+                return NetworkType.MIJIN_TEST
+
+            case 'mijin':
+                return NetworkType.MIJIN
+
+            case 'publicTest':
+                return NetworkType.TEST_NET
+            
+            case 'public':
+                return NetworkType.MAIN_NET
+        }
     }
 
     public static async getGenerationHash(url: string) {
