@@ -84,8 +84,9 @@ export class TransactionFactory extends Service {
         const ONE_YEAR_BLOCKS = (365 * 24 * 60 * 60) / 15; //XXX read block_target_seconds
 
         let mosaicConfigurationTxes: Transaction[] = [];
+        let catapultMosaicLabels: object = {};
         mosaicsWithSupply.map((mosaicWithSupply) => {
-            const {definition, supply} = mosaicWithSupply
+            const {fqn, definition, supply} = mosaicWithSupply
 
             const ownerPublicKey = definition.creator.toUpperCase()
             const ownerPubAccount = PublicAccount.createFromPublicKey(

@@ -57,6 +57,7 @@ export default class extends MigrationCommand {
         }
 
         // read mosaic definitions owned by account on NIS1
+
         this.spinner.start();
         const mosaics = await this.nisReader.getCreatedMosaics(this.nisAddress);
         this.spinner.stop(true);
@@ -68,7 +69,9 @@ export default class extends MigrationCommand {
         }
 
         mosaics.map((mosaic) => {
-            console.log(chalk.yellow(`\t* ${mosaic.definition.id.namespaceId}:${mosaic.definition.id.name}`))
+            const nisLabel = mosaic.fqn
+            const catLabel = this.catapultReader.formatMosaicName(nisLabel)
+            console.log(chalk.yellow(`\t* "${nisLabel}" => "${catLabel}"`))
         })
 
         // create Catapult transactions

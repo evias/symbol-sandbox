@@ -25,6 +25,7 @@ export const DEFAULT_NIS_URL = 'http://hugetestalice.nem.ninja:7890';
 export const DEFAULT_NIS_NETWORK_ID = NIS_SDK.model.network.data.testnet.id;
 
 export interface MosaicDefinitionWithSupply {
+    fqn: string,
     definition: any,
     supply: number
 }
@@ -69,47 +70,45 @@ export class NISDataReader extends Service {
         //XXX must query multiple pages
 
         const output: MosaicDefinitionWithSupply[] = []
-        try {
+        const response = await NIS_SDK.com.requests.account.mosaics.definitions(this.endpoint, address);
+        const mosaics = response.data
 
-            const response = await NIS_SDK.com.requests.account.mosaics.definitions(this.endpoint, address);
-            const mosaics = response.data
-
-            if (! mosaics.length) {
-                return []
-            }
-
-            // add non-mutable mosaics first
-            const fixSupply = mosaics.filter((mosaicDef) => mosaicDef.properties[2].value === 'false')
-            fixSupply.map((mosaicDef) => {
-                output.push({
-                    definition: mosaicDef,
-                    supply: parseInt(mosaicDef.properties[1].value)})
-                })
-
-            // query supply for supplyMutable mosaics
-            const mutableSupply = mosaics.filter((mosaicDef) => mosaicDef.properties[2].value === 'true')
-            mutableSupply.map(async (mosaicDef) => {
-                const mosaicId = mosaicDef.id.namespaceId + ':' + mosaicDef.id.name
-                const supplyMutable = mosaicDef.properties[2].value === 'true'
-                const initialSupply = parseInt(mosaicDef.properties[1].value)
-
-                try {
-                    // read current supply from network if necessary
-                    const supplyResponse = await NIS_SDK.com.requests.mosaic.supply(this.endpoint, mosaicId);
-                    const currentSupply = parseInt(supplyResponse.supply)
-
-                    output.push({definition: mosaicDef, supply: currentSupply})
-                }
-                catch(e) {}
-            })
-
-            return output
-        }
-        catch(e) {
+        if (! mosaics.length) {
             return []
         }
 
-        return output;
+        // add non-mutable mosaics first
+        const fixSupply = mosaics.filter((mosaicDef) => mosaicDef.properties[2].value === 'false')
+        fixSupply.map((mosaicDef) => {
+            output.push({
+                fqn: mosaicDef.id.namespaceId + ':' + mosaicDef.id.name,
+                definition: mosaicDef,
+                supply: parseInt(mosaicDef.properties[1].value)})
+            })
+
+        // query supply for supplyMutable mosaics
+        const mutableSupply = mosaics.filter((mosaicDef) => mosaicDef.properties[2].value === 'true')
+        mutableSupply.map(async (mosaicDef) => {
+            const mosaicId = mosaicDef.id.namespaceId + ':' + mosaicDef.id.name
+            const supplyMutable = mosaicDef.properties[2].value === 'true'
+            const initialSupply = parseInt(mosaicDef.properties[1].value)
+
+            // try block needed because supply API request throws
+            try {
+                // read current supply from network if necessary
+                const supplyResponse = await NIS_SDK.com.requests.mosaic.supply(this.endpoint, mosaicId);
+                const currentSupply = parseInt(supplyResponse.supply)
+
+                output.push({
+                    fqn: mosaicId,
+                    definition: mosaicDef,
+                    supply: currentSupply
+                })
+            }
+            catch(e) {} // catch ignore for expired mosaics
+        })
+
+        return output
     }
 
     public async getMultisigInfo(address: string) {

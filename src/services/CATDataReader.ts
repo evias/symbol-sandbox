@@ -68,4 +68,19 @@ export class CATDataReader extends Service {
         // Read generationHash from first block
         return response.data.meta.generationHash;
     }
+
+    public formatMosaicName(name: string) {
+        const mosaicParts = name.split(':')
+        const namespaceParts = mosaicParts[0].split('.')
+
+        const catapultName = '';
+        if (namespaceParts.length < 3) {
+            return mosaicParts[0] + '.' + mosaicParts[1]
+        }
+
+        // mosaic is on level 4 in `a.b.c:d` (mosaic is `d`)
+        // add hyphens between namespace on catapult and mosaic name
+        // with above example formatted to `a.b.c-d`
+        return mosaicParts[0] + '-' + mosaicParts[1]
+    }
 }
