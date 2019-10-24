@@ -57,12 +57,19 @@ export class CommandOptions extends BaseOptions {
         description: 'Network Type',
     })
     networkType: string;
+    @option({
+        flag: 'c',
+        description: 'Count of accounts',
+    })
+    countAccount: string;
 }
 
 @command({
     description: 'Create a new account',
 })
 export default class extends BaseCommand {
+
+    public mnemonicPassPhrase: MnemonicPassPhrase
 
     constructor() {
         super();
@@ -76,25 +83,38 @@ export default class extends BaseCommand {
 
         const networkType: NetworkType = this.getNetworkType(options)
 
+        let countAccount = OptionsResolver(options,
+            'countAccount',
+            () => { return ''; },
+            'Enter the number of accounts to generate: ')
+
+        if (!countAccount || isNaN(countAccount)) {
+            countAccount = 1
+        }
+
         console.log('');
         const doMnemonicInput = readlineSync.keyInYN(
             'Do you want to enter a mnemonic pass phrase? ');
         console.log('');
 
         try {
-            let account: Account
-            if (doMnemonicInput) {
-                account = this.createMnemonicAccount(options, networkType)
-            }
-            else {
-                account = this.createPrivateKeyAccount(networkType)
-            }
 
-            console.log('')
-            console.log('Private Key: ' + chalk.yellow(account.privateKey))
-            console.log(' Public Key: ' + chalk.yellow(account.publicKey))
-            console.log('    Address: ' + chalk.yellow(account.address.plain()))
-            console.log('')
+            for (let i = 0; i < countAccount; i++) {
+
+                let account: Account
+                if (doMnemonicInput) {
+                    account = this.createMnemonicAccount(options, networkType, i === 0)
+                }
+                else {
+                    account = this.createPrivateKeyAccount(networkType)
+                }
+
+                console.log('')
+                console.log('Private Key: ' + chalk.yellow(account.privateKey))
+                console.log(' Public Key: ' + chalk.yellow(account.publicKey))
+                console.log('    Address: ' + chalk.yellow(account.address.plain()))
+                console.log('')
+            }
         }
         catch (err) {
             console.error("An error occured: ", err)
@@ -125,13 +145,17 @@ export default class extends BaseCommand {
 
     public createMnemonicAccount(
         options: CommandOptions,
-        networkType: NetworkType = NetworkType.MIJIN_TEST
+        networkType: NetworkType = NetworkType.MIJIN_TEST,
+        doAskMnemonic: boolean = false
     ): Account {
-        const mnemo = OptionsResolver(options,
-            'mnemonic',
-            () => { return ''; },
-            'Enter a mnemonic pass phrase: ')
-        const mnemonic = new MnemonicPassPhrase(mnemo)
+
+        if (doAskMnemonic) {
+            const mnemo = OptionsResolver(options,
+                'mnemonic',
+                () => { return ''; },
+                'Enter a mnemonic pass phrase: ')
+            this.mnemonicPassPhrase = new MnemonicPassPhrase(mnemo)
+        }
 
         let derivationPath = OptionsResolver(options,
             'derivationPath',
@@ -143,7 +167,7 @@ export default class extends BaseCommand {
         }
 
         // create extended key from mnemonic pass phrase
-        const extKey = ExtendedKey.createFromSeed(mnemonic.toEntropy())
+        const extKey = ExtendedKey.createFromSeed(this.mnemonicPassPhrase.toEntropy())
         const wallet = new Wallet(extKey)
         const account = wallet.getChildAccount(derivationPath, networkType)
         return Account.createFromPrivateKey(account.privateKey, networkType)

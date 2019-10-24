@@ -17,10 +17,10 @@
  */
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
+import * as readlineSync from 'readline-sync';
 import {
     UInt64,
     Account,
-    NetworkType,
     MosaicId,
     AccountHttp,
     NamespaceHttp,
@@ -41,24 +41,36 @@ import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 import fs = require('fs');
 
+interface DistributionRow {
+    address: Address,
+    amount: UInt64,
+    mosaicId: MosaicId | NamespaceId
+}
+
 export class CommandOptions extends BaseOptions {
     @option({
         flag: 'f',
         description: 'File containing list of addresses for the transfer (CSV)',
     })
+    file: string;
 
     @option({
         flag: 'a',
-        description: 'Amount to send',
+        description: 'Comma-separated list of addresses',
     })
+    addresses: string;
 
     @option({
         flag: 'm',
+        description: 'Amount to send',
+    })
+    amount: string;
+
+    @option({
+        flag: 'i',
         description: 'Mosaic Name or Mosaic Id',
     })
-    file: string;
-    amount: string;
-    mosaic: string;
+    mosaicId: string;
 }
 
 @command({
@@ -83,32 +95,60 @@ export default class extends BaseCommand {
 
         // read parameters
 
-        try {
+        console.log('');
+        const doImportFile = readlineSync.keyInYN(
+            'Would you like to import a CSV file? ');
+        console.log('');
+
+        let distributionRows: DistributionRow[] = []
+
+        if (doImportFile === true) {
             file = OptionsResolver(options, 'file', () => { return ''; }, 'Enter the absolute path to a CSV file with addresses: ');
 
             if (! fs.existsSync(file)) {
-                throw new Error('Invalid file path');
+                console.error('Invalid file path');
+                return;
             }
-        } catch (err) { throw new ExpectedError('Please enter a valid file path'); }
+
+            distributionRows = this.extractDistributionConfig(file)
+        }
+        else {
+            // no CSV file, get data from terminal
+            let amountToSend = OptionsResolver(options, 'amount', () => { return ''; }, 'Enter the absolute amount to send: ');
+            if (!amountToSend || isNaN(amountToSend)) {
+                console.error('Invalid amount')
+                return ;
+            }
+
+            let mosaicIdentifier: string = OptionsResolver(options, 'mosaicId', () => { return ''; }, 'Enter a mosaic id or a mosaic name: ');
+            let mosaicId: MosaicId|NamespaceId = mosaicIdentifier.indexOf('[') === 0 ? 
+                                                 new MosaicId(JSON.parse(mosaicIdentifier)) 
+                                               : new NamespaceId(mosaicIdentifier);
+
+            let distributeTo = OptionsResolver(options, 'addresses', () => { return ''; }, 'Enter a comma-separated list of addresses: ');
+            distributeTo.split(',').map((stakeholder: string) => {
+                const clean = stakeholder.replace(/^\s*/, '').replace(/\s$/, '').toUpperCase()
+                const addr = Address.createFromRawAddress(clean)
+                distributionRows.push({
+                    address: addr,
+                    amount: UInt64.fromUint(amountToSend),
+                    mosaicId: mosaicId
+                })
+            })
+        }
 
         // read sender account information
         const account = this.getAccount("tester1");
         const accountInfo = await accountHttp.getAccountInfo(this.getAddress("tester1")).toPromise();
-
-        // read file content, should contain following columns:
-        // - Address
-        // - Amount
-        // - Mosaic Name / Mosaic Id
-        const data = this.readCSV(file);
         
         // create transactions
         let transferTxes = [];
-        data.forEach((row) => {
+        distributionRows.forEach((row) => {
             transferTxes.push(this.getTransferTransaction(
                 accountInfo.publicAccount,
                 row.address,
                 row.amount,
-                row.mosaic
+                row.mosaicId
             ));
         });
 
@@ -118,6 +158,34 @@ export default class extends BaseCommand {
 
         console.log("Sending " + transferTxes.length + " transfer(s) as one aggregate transaction.");
         return await this.broadcastBatchTransfers(account, transferTxes);
+    }
+
+    public extractDistributionConfig(
+        file: string
+    ): DistributionRow[] {
+
+        // read file content, should contain following columns:
+        // - Address
+        // - Amount
+        // - Mosaic Name / Mosaic Id
+        const data = this.readCSV(file);
+        let distributionRows: DistributionRow[] = []
+
+        // iterate rows and create distribution rows
+        data.forEach((row) => {
+
+            let mosaicId: MosaicId|NamespaceId = row.mosaic.indexOf('[') === 0 ? 
+                                                 new MosaicId(JSON.parse(row.mosaic)) 
+                                               : new NamespaceId(row.mosaic);
+
+            distributionRows.push({
+                address: Address.createFromRawAddress(row.address),
+                amount: UInt64.fromUint(parseInt(row.amount)),
+                mosaicId: mosaicId
+            })
+        });
+
+        return distributionRows
     }
 
     public async broadcastBatchTransfers(
@@ -150,25 +218,15 @@ export default class extends BaseCommand {
 
     public getTransferTransaction(
         publicAccount: PublicAccount,
-        recipientAddress: string,
-        mosaicAmount: string,
-        mosaicIdentifier: string
+        recipientAddress: Address,
+        mosaicAmount: UInt64,
+        mosaicIdentifier: MosaicId|NamespaceId
     ): InnerTransaction
     {
-        // amount can be passed as uint array or number
-        const amountFormat = mosaicAmount.indexOf('[') === 0 ? 
-            new UInt64(JSON.parse(mosaicAmount)) 
-            : UInt64.fromUint(parseInt(mosaicAmount));
-
-        // mosaic can be passed as mosaicId or namespace name
-        const mosaicId = mosaicIdentifier.indexOf('[') === 0 ?
-            new MosaicId(JSON.parse(mosaicAmount))
-            : new NamespaceId(mosaicIdentifier);
-
         const transferTx = TransferTransaction.create(
             Deadline.create(),
-            Address.createFromRawAddress(recipientAddress),
-            [new Mosaic(mosaicId, amountFormat)],
+            recipientAddress,
+            [new Mosaic(mosaicIdentifier, mosaicAmount)],
             EmptyMessage,
             this.networkType,
             UInt64.fromUint(1000000)
