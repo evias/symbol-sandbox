@@ -17,10 +17,11 @@
  */
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
+import * as readlineSync from 'readline-sync';
 import {
     UInt64,
     Account,
-    NetworkType,
+    Address,
     MosaicId,
     AccountHttp,
     NamespaceHttp,
@@ -38,6 +39,9 @@ import {
     MosaicAliasTransaction,
     AliasAction,
     NamespaceRegistrationTransaction,
+    TransferTransaction,
+    Mosaic,
+    PlainMessage,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -55,24 +59,24 @@ export class CommandOptions extends BaseOptions {
     })
     divisibility: number;
     @option({
-        flag: 's',
-        description: 'Mutable supply Mosaic [0, 1]',
-    })
-    supplyMutable: boolean;
-    @option({
-        flag: 't',
-        description: 'Transferable Mosaic [0, 1]',
-    })
-    transferable: boolean;
-    @option({
         flag: 'i',
         description: 'Initial supply',
     })
     initialSupply: string;
+    @option({
+        flag: 'a',
+        description: 'Distribution addresses',
+    })
+    addresses: string;
+    @option({
+        flag: 's',
+        description: 'Distribution amount',
+    })
+    amount: number;
 }
 
 @command({
-    description: 'Complete Mosaic configuration through aggregate transaction with RegisterNamespace, MosaicDefinition and MosaicSupplyChange',
+    description: 'Complete Mosaic configuration through aggregate transaction with RegisterNamespace, MosaicDefinition and MosaicSupplyChange, MosaicAlias and TransferTransaction',
 })
 export default class extends BaseCommand {
 
@@ -83,12 +87,12 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) 
     {
-        await this.setupConfig();
-        let name;
-        let divisibility;
-        let supplyMutable;
-        let transferable;
-        let initialSupply;
+        await this.setupConfig()
+        let name
+        let divisibility
+        let initialSupply
+        let addresses: Address[] = []
+        let distributionAmount: number = 0
 
         // read parameters
 
@@ -98,30 +102,52 @@ export default class extends BaseCommand {
 
         try {
             divisibility = OptionsResolver(options, 'divisibility', () => { return ''; }, 'Enter a mosaic divisibility: ');
+            divisibility = divisibility < 0 ? 0 : divisibility > 6 ? 6 : divisibility
         } catch (err) { throw new ExpectedError('Please enter a valid mosaic divisibility (0-6)'); }
 
         try {
-            supplyMutable = OptionsResolver(options, 'supplyMutable', () => { return ''; }, 'Should the supply be mutable ? [1, 0] ');
-            supplyMutable = parseInt(supplyMutable) === 1;
-        } catch (err) { throw new ExpectedError('Please enter 1 for mutable supply and 0 for immutable supply'); }
-
-        try {
-            transferable = OptionsResolver(options, 'transferable', () => { return ''; }, 'Should the mosaic be transferable ? [1, 0] ');
-            transferable = parseInt(transferable) === 1;
-        } catch (err) { throw new ExpectedError('Please enter 1 for transferable and 0 for non-transferable'); }
-
-        try {
             initialSupply = OptionsResolver(options, 'initialSupply', () => { return ''; }, 'Enter an initial supply: ');
-
-            if (initialSupply.indexOf('[') === 0) {
-                initialSupply = JSON.parse(initialSupply);
-                initialSupply = new UInt64(initialSupply);
-            }
-            else {
-                initialSupply = UInt64.fromUint(initialSupply);
-            }
-
+            initialSupply = UInt64.fromUint(initialSupply);
         } catch (err) { throw new ExpectedError('Please enter a valid initial supply'); }
+
+        console.log('');
+        const supplyMutable = readlineSync.keyInYN(
+            'Should the mosaic supply be mutable? ');
+
+        console.log('');
+        const transferable = readlineSync.keyInYN(
+            'Should the mosaic be transferable? ');
+
+        console.log('');
+        const restrictable = readlineSync.keyInYN(
+            'Should the mosaic be restrictable? ');
+
+        console.log('');
+        const distribution = readlineSync.keyInYN(
+            'Would you like to configure distribution of the mosaic? ');
+        console.log('');
+
+        if (distribution === true) {
+            try {
+                let distributeTo = OptionsResolver(options, 'addresses', () => { return ''; }, 'Enter a comma-separated list of addresses: ');
+                distributeTo.split(',').map((stakeholder: string) => {
+                    const clean = stakeholder.replace(/^\s*/, '').replace(/\s$/, '').toUpperCase()
+                    const addr = Address.createFromRawAddress(clean)
+                    addresses.push(addr)
+                })
+            } catch (err) {
+                throw new ExpectedError('Please enter a valid comma-separated list of addresses'); 
+            }
+
+            try {
+                distributionAmount = OptionsResolver(options, 'amount', () => { return ''; }, 'Enter an amount to distribute: ');
+
+                const total = distributionAmount * addresses.length
+                if (total > initialSupply) {
+                    throw new Error("Total distribution amount must not exceed initial supply")
+                }
+            } catch (err) { throw err }
+        }
 
         // add a block monitor
         this.monitorBlocks();
@@ -149,7 +175,8 @@ export default class extends BaseCommand {
             account.publicAccount,
             divisibility,
             supplyMutable,
-            transferable
+            transferable,
+            restrictable
         );
 
         // STEP 2.2: create MosaicSupplyChange transaction
@@ -171,8 +198,19 @@ export default class extends BaseCommand {
             mosaicDefinitionTx.mosaicId
         );
 
-        // STEP 4: merge transactions and broadcast
-        const allTxes = [].concat(namespaceTxes, mosaicDefinitionTxes, aliasTxes);
+        let distributionTxes = []
+        if (distribution === true && addresses.length) {
+            // STEP 4: create Transfer transaction to distribute mosaic
+            distributionTxes = this.getTransferTransactions(
+                account.publicAccount,
+                mosaicDefinitionTx.mosaicId,
+                addresses,
+                distributionAmount
+            );
+        }
+
+        // STEP 5: merge transactions and broadcast
+        const allTxes = [].concat(namespaceTxes, mosaicDefinitionTxes, aliasTxes, distributionTxes);
         return await this.broadcastAggregateMosaicConfiguration(account, allTxes);
     }
 
@@ -236,7 +274,7 @@ export default class extends BaseCommand {
                 catch(e) {} // Do nothing, namespace "Error: Not Found"
             }
 
-            console.log("Step 1) Creating " + registerTxes.length + " NamespaceRegistrationTransaction");
+            console.log(chalk.yellow("Step 1) Creating " + registerTxes.length + " NamespaceRegistrationTransaction"));
             return resolve(registerTxes);
         });
     }
@@ -280,7 +318,8 @@ export default class extends BaseCommand {
         publicAccount: PublicAccount,
         divisibility: number,
         supplyMutable: boolean,
-        transferable: boolean
+        transferable: boolean,
+        restrictable: boolean
     ): MosaicDefinitionTransaction
     {
         // create nonce and mosaicId
@@ -294,14 +333,14 @@ export default class extends BaseCommand {
             duration: UInt64.fromUint(1000000), // 1'000'000 blocks
         };
 
-        console.log('Step 2.1) Creating MosaicDefinitionTransaction with mosaicId: ' + JSON.stringify(mosId.id));
-        console.log('Step 2.2) Creating MosaicDefinitionTransaction with properties: ' + JSON.stringify(props));
+        console.log(chalk.yellow('Step 2.1) Creating MosaicDefinitionTransaction with mosaicId: ' + JSON.stringify(mosId.id)));
+        console.log(chalk.yellow('Step 2.2) Creating MosaicDefinitionTransaction with properties: ' + JSON.stringify(props)));
 
         const createTx = MosaicDefinitionTransaction.create(
             Deadline.create(),
             nonce,
             mosId,
-            MosaicFlags.create(supplyMutable, transferable, false),
+            MosaicFlags.create(supplyMutable, transferable, restrictable),
             divisibility,
             UInt64.fromUint(100000), // 100'000 blocks
             this.networkType,
@@ -316,7 +355,7 @@ export default class extends BaseCommand {
         initialSupply: UInt64
     ): MosaicSupplyChangeTransaction
     {
-        console.log('Step 2.1) Creating MosaicSupplyChangeTransaction with mosaicId: ' + JSON.stringify(mosaicId.id));
+        console.log(chalk.yellow('Step 2.3) Creating MosaicSupplyChangeTransaction with mosaicId: ' + JSON.stringify(mosaicId.id)));
         const supplyTx = MosaicSupplyChangeTransaction.create(
             Deadline.create(),
             mosaicId,
@@ -338,7 +377,7 @@ export default class extends BaseCommand {
         const namespaceId = new NamespaceId(namespaceName);
         const actionType  = AliasAction.Link;
 
-        console.log('Step 3) Creating MosaicAliasTransaction with for namespace: ' + namespaceName);
+        console.log(chalk.yellow('Step 3) Creating MosaicAliasTransaction with for namespace: ' + namespaceName));
         const aliasTx = MosaicAliasTransaction.create(
             Deadline.create(),
             actionType,
@@ -351,5 +390,31 @@ export default class extends BaseCommand {
         return [
             aliasTx.toAggregate(publicAccount),
         ];
+    }
+
+    public getTransferTransactions(
+        publicAccount: PublicAccount,
+        mosaicId: MosaicId,
+        addresses: Address[],
+        amount: number
+    ): Transaction[]
+    {
+        console.log(chalk.yellow('Step 4) Sending ' + amount.toString() + ' to ' + addresses.length + ' addresses.'));
+
+        let transferTxes: Transaction[] = []
+        addresses.map((address: Address) => {
+            const transferTx = TransferTransaction.create(
+                Deadline.create(),
+                address,
+                [new Mosaic(mosaicId, UInt64.fromUint(amount))],
+                PlainMessage.create('nem2-sandbox initial coin distribution'),
+                this.networkType,
+                UInt64.fromUint(1000000), // 1 XEM fee
+            )
+
+            transferTxes.push(transferTx.toAggregate(publicAccount))
+        })
+
+        return transferTxes
     }
 }

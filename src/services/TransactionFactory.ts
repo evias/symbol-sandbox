@@ -108,6 +108,9 @@ export class TransactionFactory extends Service {
             // create nonce and id
             const mosaicNonce = MosaicNonce.createRandom();
             const mosaicId = MosaicId.createFromNonce(mosaicNonce, ownerPubAccount);
+            const catLabel = this.catapultReader.formatMosaicName(fqn)
+
+            catapultMosaicLabels[catLabel] = mosaicId
 
             // create mosaic definition
             const definitionTx =  MosaicDefinitionTransaction.create(
@@ -134,6 +137,8 @@ export class TransactionFactory extends Service {
             mosaicConfigurationTxes.push(definitionTx)
             mosaicConfigurationTxes.push(supplyTx)
         })
+
+        // XXX should also register namespaces & create aliases
 
         return mosaicConfigurationTxes;
     }
