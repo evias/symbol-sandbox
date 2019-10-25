@@ -125,12 +125,20 @@ export default class extends BaseCommand {
                                                  new MosaicId(JSON.parse(mosaicIdentifier)) 
                                                : new NamespaceId(mosaicIdentifier);
 
-            let distributeTo = OptionsResolver(options, 'addresses', () => { return ''; }, 'Enter a comma-separated list of addresses: ');
+            let distributeTo = OptionsResolver(options, 'addresses', () => { return ''; }, 'Enter a comma-separated list of addresses or public keys: ');
             distributeTo.split(',').map((stakeholder: string) => {
                 const clean = stakeholder.replace(/^\s*/, '').replace(/\s$/, '').toUpperCase()
-                const addr = Address.createFromRawAddress(clean)
+                let address: Address
+
+                if (clean.length === 40) {
+                    address = Address.createFromRawAddress(clean)
+                }
+                else {
+                    address = Address.createFromPublicKey(clean, this.networkType)
+                }
+
                 distributionRows.push({
-                    address: addr,
+                    address: address,
                     amount: UInt64.fromUint(amountToSend),
                     mosaicId: mosaicId
                 })
@@ -138,8 +146,8 @@ export default class extends BaseCommand {
         }
 
         // read sender account information
-        const account = this.getAccount("tester1");
-        const accountInfo = await accountHttp.getAccountInfo(this.getAddress("tester1")).toPromise();
+        const account = this.getAccount("nemesis1");
+        const accountInfo = await accountHttp.getAccountInfo(this.getAddress("nemesis1")).toPromise();
         
         // create transactions
         let transferTxes = [];
@@ -154,7 +162,7 @@ export default class extends BaseCommand {
 
         // start monitoring network
         this.monitorBlocks();
-        this.monitorAddress(this.getAddress("tester1").plain());
+        this.monitorAddress(this.getAddress("nemesis1").plain());
 
         console.log("Sending " + transferTxes.length + " transfer(s) as one aggregate transaction.");
         return await this.broadcastBatchTransfers(account, transferTxes);
@@ -177,6 +185,14 @@ export default class extends BaseCommand {
             let mosaicId: MosaicId|NamespaceId = row.mosaic.indexOf('[') === 0 ? 
                                                  new MosaicId(JSON.parse(row.mosaic)) 
                                                : new NamespaceId(row.mosaic);
+
+            let address: Address
+            if (row.address.length === 40) {
+                address = Address.createFromRawAddress(row.address)
+            }
+            else {
+                address = Address.createFromPublicKey(row.address, this.networkType)
+            }
 
             distributionRows.push({
                 address: Address.createFromRawAddress(row.address),
