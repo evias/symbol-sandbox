@@ -38,6 +38,9 @@ export abstract class BaseCommand extends Command {
     public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
     public networkType: NetworkType;
     protected accounts = {
+        "nemesis1": {
+           "address": "SBG5O76KJTZCJFHN3BXMQGBDRE4Y2NEKKALYRQTZ",
+           "privateKey": ""},
         "tester1": {
             "address": "SBXTSKD2FDOP4A37ANWSWCOKGPIBGYYK5U3CIYMZ",
             "privateKey": ""},

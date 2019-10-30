@@ -19,12 +19,14 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
+    Id,
     NetworkType,
     MosaicId,
     Deadline,
     TransactionHttp,
     MosaicSupplyChangeTransaction,
     MosaicSupplyChangeAction,
+    RawUInt64,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -36,6 +38,16 @@ export class CommandOptions extends BaseOptions {
         description: 'Mosaic Id',
     })
     mosaicId: string;
+    @option({
+        flag: 'a',
+        description: 'Change Action',
+    })
+    changeAction: number;
+    @option({
+        flag: 's',
+        description: 'Supply Modification',
+    })
+    supply: number;
 }
 
 @command({
@@ -51,15 +63,32 @@ export default class extends BaseCommand {
     async execute(options: CommandOptions) {
         await this.setupConfig();
 
-        let mosaicId;
+        let mosaicId,
+            changeAction,
+            supplyMod;
         try {
             mosaicId = OptionsResolver(options,
                 'mosaicId',
                 () => { return ''; },
-                'Enter a mosaicId: ');
+                'Enter a mosaicId (array notation or hexadecimal): ');
+
+            if (mosaicId.indexOf('[') === 0) {
+                // from array notation
+                mosaicId = new MosaicId(JSON.parse(mosaicId))
+            }
+            else {
+                // from hex
+                mosaicId = new MosaicId(RawUInt64.fromHex(mosaicId))
+            }
+
+            changeAction = OptionsResolver(options, 'changeAction', () => { return ''; }, 'Enter 0 for supply increase or 1 for supply decrease: ');
+            changeAction = changeAction == '0' ? 0 : 1
+
+            supplyMod = OptionsResolver(options, 'supply', () => { return ''; }, 'Enter the supply to add/remove (absolute): ');
+
         } catch (err) {
             console.log(options);
-            throw new ExpectedError('Enter a valid mosaicId (Array JSON ex: "[664046103, 198505464]")');
+            throw new ExpectedError('Enter a valid mosaicId (Array JSON ex: "[664046103, 198505464]" or hexadecimal ex: "308F144790CD7BC4")');
         }
 
         // add a block monitor
@@ -68,21 +97,24 @@ export default class extends BaseCommand {
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
-        return await this.addSupplyForMosaic(mosaicId);
+        return await this.addSupplyForMosaic(mosaicId, changeAction, supplyMod);
     }
 
-    public async addSupplyForMosaic(mosIdJSON: string): Promise<Object>
+    public async addSupplyForMosaic(
+        mosaicId: MosaicId,
+        changeAction: number,
+        supplyMod: number
+    ): Promise<Object>
     {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
 
         // TEST: send mosaic supply change transaction
-        const mosaicId    = JSON.parse(mosIdJSON); 
         const supplyTx = MosaicSupplyChangeTransaction.create(
             Deadline.create(),
-            new MosaicId(mosaicId),
-            MosaicSupplyChangeAction.Increase,
-            UInt64.fromUint(290888000), // div=3
+            mosaicId,
+            changeAction === 0 ? MosaicSupplyChangeAction.Increase : MosaicSupplyChangeAction.Decrease,
+            UInt64.fromUint(supplyMod),
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );

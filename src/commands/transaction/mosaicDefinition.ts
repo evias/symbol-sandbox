@@ -17,6 +17,7 @@
  */
 import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
+import * as readlineSync from 'readline-sync';
 import {
     UInt64,
     NetworkType,
@@ -33,10 +34,10 @@ import {BaseCommand, BaseOptions} from '../../base-command';
 
 export class CommandOptions extends BaseOptions {
     @option({
-        flag: 'n',
-        description: 'Mosaic Name',
+        flag: 'd',
+        description: 'Divisibility [0, 6]',
     })
-    name: string;
+    divisibility: number;
 }
 
 @command({
@@ -52,16 +53,36 @@ export default class extends BaseCommand {
     async execute(options: CommandOptions) {
         await this.setupConfig();
 
+        let divisibility = OptionsResolver(options, 'divisibility', () => { return ''; }, 'Enter a mosaic divisibility: ');
+        divisibility = divisibility < 0 ? 0 : divisibility > 6 ? 6 : divisibility
+
+        console.log('');
+        const supplyMutable = readlineSync.keyInYN(
+            'Should the mosaic supply be mutable? ');
+
+        console.log('');
+        const transferable = readlineSync.keyInYN(
+            'Should the mosaic be transferable? ');
+
+        console.log('');
+        const restrictable = readlineSync.keyInYN(
+            'Should the mosaic be restrictable? ');
+
         // add a block monitor
         this.monitorBlocks();
 
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
-        return await this.createMosaic();
+        return await this.createMosaic(divisibility, supplyMutable, transferable, restrictable);
     }
 
-    public async createMosaic(): Promise<Object>
+    public async createMosaic(
+        divisibility: number,
+        supplyMutable: boolean,
+        transferable: boolean,
+        restrictable: boolean
+    ): Promise<Object>
     {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
@@ -76,8 +97,8 @@ export default class extends BaseCommand {
             Deadline.create(),
             nonce,
             mosId,
-            MosaicFlags.create(false, true, false),
-            3,
+            MosaicFlags.create(supplyMutable, transferable, restrictable),
+            divisibility,
             UInt64.fromUint(100000), // 100'000 blocks
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
