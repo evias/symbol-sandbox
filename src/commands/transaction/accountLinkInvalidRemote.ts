@@ -135,7 +135,8 @@ export default class extends BaseCommand {
 
         const linkAction  = LinkAction.Link;
 
-        let invalidRemotePub: string = '0'.repeat(64)
+        // modify last character to be 0
+        let invalidRemotePub: string = Account.generateNewAccount(this.networkType).publicKey.substr(0, 63) + '0'
         console.log(chalk.yellow('Linking account ' + account.address.plain() + ' to *invalid* remote public key: ' + invalidRemotePub))
 
         const linkTx = AccountLinkTransaction.create(
