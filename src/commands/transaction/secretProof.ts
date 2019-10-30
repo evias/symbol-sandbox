@@ -107,6 +107,8 @@ export default class extends BaseCommand {
 
         // Proof is sent by tester2
         const signedTransaction = prover.sign(secretProofTx, this.generationHash);
+        console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
+
         const transactionHttp = new TransactionHttp(this.endpointUrl);
         return transactionHttp.announce(signedTransaction).subscribe(() => {
             console.log('Announced secret proof transaction');

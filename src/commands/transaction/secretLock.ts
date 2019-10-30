@@ -140,6 +140,8 @@ export default class extends BaseCommand {
 
         // Secret is sent by tester1
         const signedTransaction = account.sign(secretLockTx, this.generationHash);
+        console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
+
         const transactionHttp = new TransactionHttp(this.endpointUrl);
         return transactionHttp.announce(signedTransaction).subscribe(async () => {
             console.log('Announced secret lock transaction');

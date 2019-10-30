@@ -103,6 +103,7 @@ export default class extends BaseCommand {
                 this.networkType, [], UInt64.fromUint(1000000)); // 1 XEM fee
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
+            console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
 
             const transactionHttp = new TransactionHttp(this.endpointUrl);
             const listener = new Listener(this.endpointUrl);

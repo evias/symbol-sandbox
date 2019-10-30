@@ -86,6 +86,7 @@ export default class extends BaseCommand {
         );
 
         const signedTransaction = account.sign(entityTypeModification, this.generationHash);
+        console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);

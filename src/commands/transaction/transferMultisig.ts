@@ -107,6 +107,7 @@ export default class extends BaseCommand {
 
         // cosignatory #1 initiates the transaction (first signature)
         const signedMultisigTx = cosignatoryAccount.sign(multisigTx, this.generationHash);
+        console.log(chalk.yellow('Announcing Transaction Payload: ', signedMultisigTx.payload))
 
         //@FIX catapult-server@0.3.0.2 does not allow namespaceId for HashLockTransaction
         //@FIX we need to retrieve the `linked mosaicId` from the `/namespace/`  endpoint.

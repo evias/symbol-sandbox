@@ -159,6 +159,7 @@ export default class extends BaseCommand {
 
         // sign aggregate *but do not announce yet.* (SPAM protection)
         const signedAggregateTx = account.sign(aggregateTx, this.generationHash);
+        console.log(chalk.yellow('Announcing Transaction Payload: ', signedAggregateTx.payload))
 
         // create lock funds of 10 "cat.currency" for the aggregate transaction
         const lockFundsTransaction = LockFundsTransaction.create(

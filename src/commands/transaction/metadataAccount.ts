@@ -1,0 +1,253 @@
+
+/**
+ * 
+ * Copyright 2019 Grégory Saive for NEM (github.com/nemtech)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import chalk from 'chalk';
+import {command, ExpectedError, metadata, option} from 'clime';
+import {
+    MosaicId,
+    NetworkType,
+    Deadline,
+    TransactionHttp,
+    MetadataHttp,
+    NamespaceHttp,
+    UInt64,
+    Account,
+    NamespaceId,
+    MetadataTransactionService,
+    KeyGenerator,
+    MetadataType,
+    Transaction,
+    AccountMetadataTransaction,
+    AggregateTransaction,
+    SignedTransaction,
+    Address,
+    Metadata,
+    Convert,
+} from 'nem2-sdk';
+import { decode } from 'utf8';
+
+import {OptionsResolver} from '../../options-resolver';
+import {BaseCommand, BaseOptions} from '../../base-command';
+import { Observable, of as observableFrom, forkJoin } from 'rxjs';
+import { catchError, mergeMap, map } from 'rxjs/operators';
+
+const decodeHexHelper = (hex: string): string => {
+    let str = '';
+    for (let i = 0; i < hex.length; i += 2) {
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    try {
+        return decode(str);
+    } catch (e) {
+        return str;
+    }
+}
+
+export class CommandOptions extends BaseOptions {
+    @option({
+        flag: 't',
+        description: 'Target account private key',
+    })
+    targetPrivateKey: string;
+    @option({
+        flag: 'k',
+        description: 'Metadata key',
+    })
+    metadataKey: string;
+    @option({
+        flag: 'v',
+        description: 'Metadata value',
+    })
+    metadataValue: string;
+}
+
+@command({
+    description: 'Send AccountMetadataTransaction',
+})
+export default class extends BaseCommand {
+
+    private transactionHttp: TransactionHttp
+    private metadataHttp: MetadataHttp
+    private namespaceHttp: NamespaceHttp
+    private metadataService: MetadataTransactionService
+
+    constructor() {
+        super();
+    }
+
+    @metadata
+    async execute(options: CommandOptions) {
+        await this.setupConfig();
+
+        this.transactionHttp = new TransactionHttp(this.endpointUrl)
+        this.metadataHttp = new MetadataHttp(this.endpointUrl)
+        this.namespaceHttp = new NamespaceHttp(this.endpointUrl)
+        this.metadataService = new MetadataTransactionService(this.metadataHttp)
+
+        const senderAccount = this.getAccount("tester1")
+        let targetPrivateKey
+        let targetAccount: Account
+        let metadataKey
+        let metadataValue
+        try {
+            targetPrivateKey = OptionsResolver(options, 'targetPrivateKey', () => { return ''; }, 'Enter a target account private key: ');
+            targetAccount = Account.createFromPrivateKey(targetPrivateKey, this.networkType)
+
+            metadataKey = OptionsResolver(options, 'metadataKey', () => { return ''; }, 'Enter a metadata key: ');
+            metadataValue = OptionsResolver(options, 'metadataValue', () => { return ''; }, 'Enter a metadata value: ');
+        } catch (err) {
+            throw new ExpectedError('Enter a valid metadata key.');
+        }
+
+        this.monitorBlocks();
+        this.monitorAddress(senderAccount.address.plain());
+        if (targetAccount.publicKey !== senderAccount.publicKey) {
+            this.monitorAddress(targetAccount.address.plain());
+        }
+
+        return await this.createAccountMetadataTransaction(
+            senderAccount,
+            targetAccount,
+            metadataKey,
+            metadataValue
+        )
+    }
+
+    public async createAccountMetadataTransaction(
+        senderAccount: Account,
+        targetAccount: Account,
+        metadataKey: string,
+        metadataValue: string
+    ): Promise<Object>
+    {
+        let hash: string
+
+        const keyBytes = KeyGenerator.generateUInt64Key(metadataKey);
+        const newValueBytes = Convert.utf8ToUint8(metadataValue);
+
+        const currentValue = this.metadataHttp.getAccountMetadataByKeyAndSender(
+            Address.createFromPublicKey(targetAccount.publicKey, this.networkType),
+            keyBytes.toHex(),
+            senderAccount.publicKey
+        )
+
+        const accountMetadataTx = currentValue.pipe(
+            map((metadata: Metadata) => {
+
+                console.log(chalk.yellow('1) Found metadata: ', JSON.stringify(metadata)))
+
+                const currentValueBytes = Convert.utf8ToUint8(metadata.metadataEntry.value);
+                return AccountMetadataTransaction.create(
+                    Deadline.create(),
+                    targetAccount.publicKey,
+                    keyBytes,
+                    newValueBytes.length - currentValueBytes.length,
+                    decodeHexHelper(Convert.xor(currentValueBytes, newValueBytes)),
+                    this.networkType,
+                    UInt64.fromUint(1000000), // 1 XEM fee
+                )
+            }),
+            catchError((err: Error) => {
+                const error = JSON.parse(err.message);
+
+                if (!error || !error.statusCode || error.statusCode !== 404) {
+                    throw err
+                }
+
+                console.log(chalk.yellow('1) No metadata for account.'))
+
+                return observableFrom(AccountMetadataTransaction.create(
+                    Deadline.create(),
+                    targetAccount.publicKey,
+                    keyBytes,
+                    newValueBytes.length,
+                    metadataValue,
+                    this.networkType,
+                    UInt64.fromUint(1000000), // 1 XEM fee
+                ))
+            })
+        )
+
+/**
+ * {
+	"metadataEntries": [{
+		"metadataEntry": {
+			"compositeHash": "9BC2E907DE294DA246CD376B92C20B37A04E5B09081E3642079EC627F65F84E6",
+			"senderPublicKey": "9B97C0394662E7C37473F273FC04D1B7E78F6C4BD998E6D99D5033522CC043CE",
+			"targetPublicKey": "9B97C0394662E7C37473F273FC04D1B7E78F6C4BD998E6D99D5033522CC043CE",
+			"scopedMetadataKey": "D1AF63DB37DCB9C1",
+			"targetId": "0000000000000000",
+			"metadataType": 0,
+			"valueSize": 31,
+			"value": "687474703A2F2F706C616365686F6C642E6A702F313530783135302E706E67"
+		},
+		"id": "5DA9CDB9EC3900D3E7A65221"
+	}]
+}
+ */
+        const signedAggregateTx = accountMetadataTx.pipe(
+            mergeMap((transaction: AccountMetadataTransaction) => {
+
+                console.log(chalk.yellow('2) Signing aggregate complete.'))
+
+                const aggregateComplete: AggregateTransaction = AggregateTransaction.createComplete(
+                    Deadline.create(),
+                    [transaction.toAggregate(targetAccount.publicAccount)],
+                    this.networkType,
+                    []
+                )
+
+                if (targetAccount.publicKey === senderAccount.publicKey) {
+                    // account assigning metadata to itself
+                    console.log(chalk.yellow('3) Signing with same target as sender: ', senderAccount.publicKey))
+                    const signedTx = senderAccount.sign(aggregateComplete, this.generationHash)
+                    return observableFrom(signedTx)
+                }
+
+                // account assigning metadata to targetAccount
+                console.log(chalk.yellow('3) Signing with different target: ', targetAccount.publicKey, ' and sender: ', senderAccount.publicKey))
+                const signedTx = senderAccount.signTransactionWithCosignatories(
+                    aggregateComplete,
+                    [targetAccount],
+                    this.generationHash
+                )
+
+                return observableFrom(signedTx)
+            })
+        )
+
+        return signedAggregateTx.pipe(
+            mergeMap((signedAggregate: SignedTransaction) => {
+                console.log(chalk.yellow('4) Broadcasting aggregate complete.'))
+                console.log(chalk.green('5) Transaction payload: ', signedAggregate.payload))
+                const transactionHttp = new TransactionHttp(this.endpointUrl)
+                hash = signedAggregate.hash
+                return transactionHttp.announce(signedAggregate)
+            })
+        ).subscribe(() => {
+            console.log('5) Transaction announced correctly');
+            console.log('Hash:   ', hash);
+            console.log('Aggregate Signer: ', senderAccount.publicKey);
+            console.log('AccountMetadata Signer: ', targetAccount.publicKey);
+        }, (err) => {
+            let text = '';
+            text += 'testAccountMetadataAction() - Error';
+            console.log(text, err.response !== undefined ? err.response.text : err);
+        })
+    }
+
+}

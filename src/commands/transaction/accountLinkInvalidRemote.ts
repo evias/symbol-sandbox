@@ -29,10 +29,66 @@ import {
     Account,
     AccountType,
     PublicAccount,
+    RawAddress,
+    SignSchema,
+    Convert,
+    SHA3Hasher as sha3Hasher,
 } from 'nem2-sdk';
-
+const { sha3_256 } = require('js-sha3');
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
+
+const arrayCopy = (dest, src, numElementsToCopy, destOffset = 0, srcOffset = 0) => {
+    const length = undefined === numElementsToCopy ? dest.length : numElementsToCopy;
+    for (let i = 0; i < length; ++i)
+        dest[destOffset + i] = src[srcOffset + i];
+}
+
+const uint8View = input => {
+    if (ArrayBuffer === input.constructor)
+        return new Uint8Array(input); // note that wrapping an ArrayBuffer in an Uint8Array does not make a copy
+    if (Uint8Array === input.constructor)
+        return input;
+
+    throw Error('unsupported type passed to uint8View');
+}
+
+const deepEqual = (lhs, rhs, numElementsToCompare) => {
+    let length = numElementsToCompare;
+    if (undefined === length) {
+        if (lhs.length !== rhs.length)
+            return false;
+
+        ({ length } = lhs);
+    }
+
+    if (length > lhs.length || length > rhs.length)
+        return false;
+
+    for (let i = 0; i < length; ++i) {
+        if (lhs[i] !== rhs[i])
+            return false;
+    }
+
+    return true;
+}
+
+const isValidAddressDecoded = (decoded): boolean => {
+    const hash = sha3_256.create();
+    const checksumBegin = 25 - 4;
+    hash.update(decoded.subarray(0, checksumBegin));
+    const checksum = new Uint8Array(4);
+    arrayCopy(checksum, uint8View(hash.arrayBuffer()), 4);
+    return deepEqual(checksum, decoded.subarray(checksumBegin), 4);
+}
+
+const prepareUnclampedPublicKey = (privateKey): string => {
+    const sk = Convert.hexToUint8(privateKey);
+    const d = new Uint8Array(64);
+    sha3Hasher.func(d, sk, 64, SignSchema.SHA3);
+    // DO NOT "clamp" clamp(d);
+    return Convert.uint8ToHex(d);
+}
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -78,17 +134,8 @@ export default class extends BaseCommand {
         // TEST: send account link transaction
 
         const linkAction  = LinkAction.Link;
-        const remotePublicKey = Account.generateNewAccount(this.networkType).publicKey
 
-        console.log(chalk.yellow('Original remote public key: ' + remotePublicKey))
-
-        // TEST: modify pieces of the public key so that it gets INVALID point on curve
-        const invalidRemotePub = remotePublicKey.substr(0, 12) + '00' 
-                               + remotePublicKey.substr(14, 25) + '000'
-                               + remotePublicKey.substr(42, 10) + '000'
-                               + remotePublicKey.substr(55, 5) + '00'
-                               + remotePublicKey.substr(0, 2)
-
+        let invalidRemotePub: string = '0'.repeat(64)
         console.log(chalk.yellow('Linking account ' + account.address.plain() + ' to *invalid* remote public key: ' + invalidRemotePub))
 
         const linkTx = AccountLinkTransaction.create(
@@ -100,9 +147,7 @@ export default class extends BaseCommand {
         );
 
         const signedTransaction = signer.sign(linkTx, this.generationHash);
-
-        console.log(linkTx);
-        console.log("Signed Transaction: ", signedTransaction);
+        console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);

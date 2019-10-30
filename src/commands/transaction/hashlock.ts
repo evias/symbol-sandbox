@@ -107,6 +107,7 @@ export default class extends BaseCommand {
             );
 
             const signedLockFundsTransaction = account.sign(lockFundsTransaction, this.generationHash);
+            console.log(chalk.yellow('Announcing Transaction Payload: ', signedLockFundsTransaction.payload))
 
             const transactionHttp = new TransactionHttp(this.endpointUrl);
             transactionHttp.announce(signedLockFundsTransaction).subscribe(() => {

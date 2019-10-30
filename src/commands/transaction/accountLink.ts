@@ -90,9 +90,7 @@ export default class extends BaseCommand {
         );
 
         const signedTransaction = signer.sign(linkTx, this.generationHash);
-
-        console.log(linkTx);
-        console.log("Signed Transaction: ", signedTransaction);
+        console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);

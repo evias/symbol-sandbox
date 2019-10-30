@@ -89,7 +89,7 @@ export default class extends BaseCommand {
         // add a block monitor
         this.monitorBlocks();
 
-        const address = this.getAddress("tester1").plain();
+        const address = this.getAddress("nemesis1").plain();
         this.monitorAddress(address);
 
         return await this.sendTransferTo(recipient, amount);
@@ -112,7 +112,7 @@ export default class extends BaseCommand {
         // attach mosaicId !
         mosaics.push(new Mosaic(mosaicId, UInt64.fromUint(amount)));
 
-        const account   = this.getAccount("tester1");
+        const account   = this.getAccount("nemesis1");
         const message   = PlainMessage.create("Simple transfer of " + amount + " nem.xem");
         const deadline  = Deadline.create();
 
@@ -127,6 +127,7 @@ export default class extends BaseCommand {
         );
 
         const signedTransaction = account.sign(transferTransaction, this.generationHash);
+        console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
 
         // announce/broadcast transaction
         const transactionHttp = new TransactionHttp(this.endpointUrl);
