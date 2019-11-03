@@ -27,36 +27,18 @@ import {
     NetworkHttp,
 } from 'nem2-sdk';
 
+const accountsConfig = require('../conf/accounts.json')
+
 export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
 
-    //TESTNET MIJIN_TEST public endpointUrl = "http://api-01.mt.eu-central-1.nemtech.network:3000";
-    //TESTNET PUBLIC_TEST public endpointUrl = "http://api-01-edge-xp.us-west-1.nemtech.network:3000";
     public endpointUrl = "http://api-01.mt.eu-central-1.nemtech.network:3000";
+    //TESTNET PUBLIC_TEST public endpointUrl = "http://api-01-edge-xp.us-west-1.nemtech.network:3000";
     //TESTNET MIJIN_TEST public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
     //TESTNET PUBLIC_TEST public generationHash = "988C4CDCE4D188013C13DE7914C7FD4D626169EF256722F61C52EFBE06BD5A2C";
     public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
     public networkType: NetworkType;
-    protected accounts = {
-        "nemesis1": {
-           "address": "SBG5O76KJTZCJFHN3BXMQGBDRE4Y2NEKKALYRQTZ",
-           "privateKey": ""},
-        "tester1": {
-            "address": "SBXTSKD2FDOP4A37ANWSWCOKGPIBGYYK5U3CIYMZ",
-            "privateKey": ""},
-        "tester2": {
-            "address": "SC3KUHEEBYHZL35OL6ST7KRMB6RTOEMP2J6UFM6S",
-            "privateKey": ""},
-        "tester3": {
-            "address": "SD2AMYW6QRH2DQ6BCSMKDHKSL7PMEDOORXM73B7Q",
-            "privateKey": ""},
-        "tester4": {
-            "address": "SDBTF7Y63B4FONR6PFJ64BQA4EKRYB7CBTWEMONC",
-            "privateKey": ""},
-        "multisig1": {
-            "address": "SCDW6TN6OS7G3QOZZEMDMUGHOJSHM3XZC2WYFFDC",
-            "privateKey": ""},
-    };
+    protected accounts = {};
 
     public listenersAddresses = {};
     public listenerBlocks = null;
@@ -67,6 +49,8 @@ export abstract class BaseCommand extends Command {
         this.spinner.setSpinnerString('|/-\\');
         this.listenerBlocks = new Listener(this.endpointUrl);
         this.spinner.setSpinnerString('|/-\\');
+
+        this.readAccounts()
     }
 
     public async setupConfig() {
@@ -75,6 +59,27 @@ export abstract class BaseCommand extends Command {
 
         //XXX read generation hash from node
         //XXX read currency mosaic from node
+    }
+
+    private readAccounts() {
+        const nemesis = accountsConfig.nemesis
+        const testers = accountsConfig.testers
+        const multisig = accountsConfig.multisig
+
+        for (let n = 0, m = nemesis.length; n < m; n++) {
+            const name = 'nemesis' + (n+1)
+            this.accounts[name] = nemesis[n]
+        }
+
+        for (let n = 0, m = testers.length; n < m; n++) {
+            const name = 'tester' + (n+1)
+            this.accounts[name] = testers[n]
+        }
+
+        for (let n = 0, m = multisig.length; n < m; n++) {
+            const name = 'multisig' + (n+1)
+            this.accounts[name] = multisig[n]
+        }
     }
 
     public getAccount(name: string): Account {
