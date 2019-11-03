@@ -27,7 +27,7 @@ import {
     NetworkHttp,
 } from 'nem2-sdk';
 
-const accountsConfig = require('../conf/accounts.json')
+const accountsConfig = require('../../conf/accounts.json')
 
 export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
