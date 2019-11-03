@@ -27,7 +27,7 @@ import {
     NetworkHttp,
 } from 'nem2-sdk';
 
-const accountsConfig = require('../../conf/accounts.json')
+const fs = require('fs')
 
 export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
@@ -62,6 +62,10 @@ export abstract class BaseCommand extends Command {
     }
 
     private readAccounts() {
+
+        const accountsFile = fs.readFileSync(__dirname + '/../../conf/accounts.json', 'utf8')
+        const accountsConfig = JSON.parse(accountsFile)
+
         const nemesis = accountsConfig.nemesis
         const testers = accountsConfig.testers
         const multisig = accountsConfig.multisig
@@ -83,7 +87,7 @@ export abstract class BaseCommand extends Command {
     }
 
     public getAccount(name: string): Account {
-        return Account.createFromPrivateKey(this.accounts[name].privateKey, this.networkType);
+        return Account.createFromPrivateKey(this.accounts[name], this.networkType);
     }
 
     public getAddress(name: string): Address {
@@ -92,7 +96,7 @@ export abstract class BaseCommand extends Command {
     }
 
     private getPrivateKey(name: string): string {
-        return this.accounts[name].privateKey;
+        return this.accounts[name];
     }
 
     public monitorBlocks(): any {
