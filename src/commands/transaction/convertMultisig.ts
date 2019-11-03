@@ -41,7 +41,6 @@ import {filter, map, mergeMap, first} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
-import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -164,7 +163,7 @@ export default class extends BaseCommand {
         // create lock funds of 10 "cat.currency" for the aggregate transaction
         const lockFundsTransaction = LockFundsTransaction.create(
             Deadline.create(),
-            new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10000000)), // 10 XEM
+            new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(10000000)), // 10 XEM
             UInt64.fromUint(1000),
             signedAggregateTx,
             this.networkType,

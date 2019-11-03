@@ -38,7 +38,6 @@ import {
     SignSchema,
 } from 'nem2-sdk';
 
-import {SandboxConstants} from '../../constants';
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -278,7 +277,7 @@ export default class extends BaseCommand {
 
         const orderBookFillTx = SecretLockTransaction.create(
             Deadline.create(),
-            new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)),
+            new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(10)),
             UInt64.fromUint(10), // 10 blocks
             HashType.Op_Sha3_256,
             secretHex,
@@ -324,7 +323,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.HARVEST_MOSAIC_NAME), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(this.networkConfig.harvestMosaic), UInt64.fromUint(10)));
 
         console.log('getMakerSettlementTransaction: Creating TransferTransaction for cat.currency from SDEXX to Maker.');
         console.log('getMakerSettlementTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -405,7 +404,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(10)));
 
         console.log('getTakerSettlementTransaction: Creating TransferTransaction for cat.currency from SDEXX to Taker.');
         console.log('getTakerSettlementTransaction: Mosaics: ' + JSON.stringify(mosaics));

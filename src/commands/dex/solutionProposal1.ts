@@ -33,7 +33,6 @@ import {
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
-import {SandboxConstants} from '../../constants';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
 export class CommandOptions extends BaseOptions {
@@ -223,7 +222,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(10)));
 
         console.log('getMakerOrderBookFillTransaction: Creating TransferTransaction for cat.currency from Maker to SDEXX.');
         console.log('getMakerOrderBookFillTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -244,7 +243,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.HARVEST_MOSAIC_NAME), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(this.networkConfig.harvestMosaic), UInt64.fromUint(10)));
 
         console.log('getMakerSettlementTransaction: Creating TransferTransaction for cat.currency from SDEXX to Maker.');
         console.log('getMakerSettlementTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -266,7 +265,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.HARVEST_MOSAIC_NAME), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(this.networkConfig.harvestMosaic), UInt64.fromUint(10)));
 
         console.log('getTakerOrderBookFillTransaction: Creating TransferTransaction for cat.harvest from Taker to SDEXX.');
         console.log('getTakerOrderBookFillTransaction: Mosaics: ' + JSON.stringify(mosaics));
@@ -287,7 +286,7 @@ export default class extends BaseCommand {
     ): TransferTransaction
     {
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(10)));
 
         console.log('getTakerSettlementTransaction: Creating TransferTransaction for cat.currency from SDEXX to Taker.');
         console.log('getTakerSettlementTransaction: Mosaics: ' + JSON.stringify(mosaics));

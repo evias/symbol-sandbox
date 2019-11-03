@@ -30,7 +30,6 @@ import {
     NamespaceId,
 } from 'nem2-sdk';
 
-import {SandboxConstants} from '../../constants';
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
@@ -106,7 +105,7 @@ export default class extends BaseCommand {
 
         // read mosaic Id from namespace name
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
-        const namespaceId = new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME);
+        const namespaceId = new NamespaceId(this.networkConfig.currencyMosaic);
         const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
 
         // attach mosaicId !

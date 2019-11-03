@@ -34,7 +34,6 @@ import { sha3_256 } from 'js-sha3';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
-import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -129,7 +128,7 @@ export default class extends BaseCommand {
 
         const secretLockTx = SecretLockTransaction.create(
             Deadline.create(),
-            new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), amount),
+            new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), amount),
             duration,
             HashType.Op_Sha3_256,
             secret,

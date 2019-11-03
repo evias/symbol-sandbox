@@ -37,7 +37,6 @@ import {
     Wallet,
 } from 'nem2-hd-wallets';
 
-import {SandboxConstants} from '../../constants';
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 

@@ -43,6 +43,7 @@ export abstract class BaseCommand extends Command {
     public listenersAddresses = {};
     public listenerBlocks = null;
     public blockSubscription = null;
+    public networkConfig: any = {}
 
     constructor() {
         super();
@@ -50,7 +51,8 @@ export abstract class BaseCommand extends Command {
         this.listenerBlocks = new Listener(this.endpointUrl);
         this.spinner.setSpinnerString('|/-\\');
 
-        this.readAccounts()
+        this.readAccountsConfig()
+        this.readNetworkConfig()
     }
 
     public async setupConfig() {
@@ -61,7 +63,7 @@ export abstract class BaseCommand extends Command {
         //XXX read currency mosaic from node
     }
 
-    private readAccounts() {
+    private readAccountsConfig() {
 
         const accountsFile = fs.readFileSync(__dirname + '/../../conf/accounts.json', 'utf8')
         const accountsConfig = JSON.parse(accountsFile)
@@ -85,6 +87,13 @@ export abstract class BaseCommand extends Command {
             this.accounts[name] = multisig[n]
         }
     }
+
+    private readNetworkConfig() {
+
+        const networkFile = fs.readFileSync(__dirname + '/../../conf/network.json', 'utf8')
+        this.networkConfig = JSON.parse(networkFile)
+    }
+
 
     public getAccount(name: string): Account {
         return Account.createFromPrivateKey(this.accounts[name], this.networkType);

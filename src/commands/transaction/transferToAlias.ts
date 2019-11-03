@@ -31,7 +31,6 @@ import {
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
-import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -78,7 +77,7 @@ export default class extends BaseCommand {
     {
         // TEST 2: send transfer to an alias
         let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(10)));
+        mosaics.push(new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(10)));
 
         const account   = this.getAccount("tester1");
         const message   = PlainMessage.create("Testing simple transfer with alias: " + namespaceName);

@@ -36,7 +36,6 @@ import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 import {from as observableFrom} from 'rxjs';
 import {filter, mergeMap} from 'rxjs/operators';
-import { SandboxConstants } from '../../constants';
 
 export class CommandOptions extends BaseOptions {
     @option({
@@ -92,7 +91,7 @@ export default class extends BaseCommand {
         const transferTx = TransferTransaction.create(
             Deadline.create(),
             recipient,
-            [new Mosaic(new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME), UInt64.fromUint(1000000))],
+            [new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(1000000))],
             PlainMessage.create('Hello from a multisig transaction!!'),
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
@@ -112,7 +111,7 @@ export default class extends BaseCommand {
         //@FIX catapult-server@0.3.0.2 does not allow namespaceId for HashLockTransaction
         //@FIX we need to retrieve the `linked mosaicId` from the `/namespace/`  endpoint.
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
-        const namespaceId = new NamespaceId(SandboxConstants.CURRENCY_MOSAIC_NAME);
+        const namespaceId = new NamespaceId(this.networkConfig.currencyMosaic);
         const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
 
         // multisig account must lock funds for aggregate-bonded

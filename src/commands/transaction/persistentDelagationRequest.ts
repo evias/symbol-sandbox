@@ -33,7 +33,6 @@ import {
     Account,
 } from 'nem2-sdk';
 
-import {SandboxConstants} from '../../constants';
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
 
