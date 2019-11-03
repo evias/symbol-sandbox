@@ -173,7 +173,8 @@ export default class extends BaseCommand {
             Deadline.create(),
             [supplyTx1.toAggregate(account.publicAccount), supplyTx2.toAggregate(account.publicAccount)],
             this.networkType,
-            []
+            [],
+            UInt64.fromUint(3000000)
         )
 
         const signedAggregateTx = account.sign(aggregateTx, this.generationHash);
