@@ -86,22 +86,6 @@ $ ./nem2-sandbox aggregate multiLevelNamespace evias.levels.tests
 $ ./nem2-sandbox aggregate multiLevelNamespace gregory.saive.handshakes
 ```
 
-## Changelog
-
-Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
-
-- [0.1.1](CHANGELOG.md#v010) - 2019-03-15
-- [0.1.0](CHANGELOG.md#v010) - 2019-03-08
-- [0.0.9](CHANGELOG.md#v009) - 2019-03-03
-- [0.0.8](CHANGELOG.md#v008) - 2019-03-01
-- [0.0.7](CHANGELOG.md#v007) - 2019-03-01
-- [0.0.6](CHANGELOG.md#v006) - 2019-02-28
-- [0.0.5](CHANGELOG.md#v005) - 2019-02-27
-- [0.0.4](CHANGELOG.md#v004) - 2019-02-23
-- [0.0.3](CHANGELOG.md#v003) - 2019-02-18
-- [0.0.2](CHANGELOG.md#v002) - 2019-02-18
-- [0.0.1](CHANGELOG.md#v001) - 2019-02-16
-
 ## License
 
 This software is released under the [Apache v2.0](LICENSE) License.

@@ -29,6 +29,7 @@ import { DEFAULT_NIS_URL, NISDataReader, NIS_SDK as sdk } from './services/NISDa
 import { CATDataReader } from './services/CATDataReader';
 import { TransactionSigner } from './services/TransactionSigner';
 import { PayloadPrinter } from './services/PayloadPrinter';
+import { OptinDataReader } from './services/OptinDataReader';
 
 export const NIS_SDK = sdk;
 
@@ -42,7 +43,9 @@ export abstract class MigrationCommand extends BaseCommand {
     protected nisAccount: any;
     protected nisAddress: string;
     protected nisReader: NISDataReader;
+    protected optinReader: OptinDataReader
     protected printer: PayloadPrinter;
+    protected isAuthenticatedCommand: boolean = true
 
     constructor() {
         super();
@@ -85,19 +88,21 @@ export abstract class MigrationCommand extends BaseCommand {
             this.nisUrl = DEFAULT_NIS_URL;
         }
 
-        // PARAM 3: Account Private Key
-        try {
-            params['privateKey'] = OptionsResolver(options,
-                'privateKey',
-                () => { return ''; },
-                'Enter your account private key: ');
-        } 
-        catch (err) {
-            throw new ExpectedError('The Account Private Key input provided is invalid.');
-        }
+        if (this.isAuthenticatedCommand === true) {
+            // PARAM 3: Account Private Key
+            try {
+                params['privateKey'] = OptionsResolver(options,
+                    'privateKey',
+                    () => { return ''; },
+                    'Enter your account private key: ');
+            } 
+            catch (err) {
+                throw new ExpectedError('The Account Private Key input provided is invalid.');
+            }
 
-        if (! params['privateKey'] || !params['privateKey'].length) {
-            throw new Error('Empty or invalid account private key provided. Please, check your input.');
+            if (! params['privateKey'] || !params['privateKey'].length) {
+                throw new Error('Empty or invalid account private key provided. Please, check your input.');
+            }
         }
 
         this.spinner.start();
@@ -113,13 +118,19 @@ export abstract class MigrationCommand extends BaseCommand {
             // initialize services and load accounts
             this.nisReader = new NISDataReader(this.nisUrl, 7890, nisNetworkId);
             this.catapultReader = new CATDataReader(this.endpointUrl, 3000, catNetworkId, catHash);
-            this.loadAccounts(params['privateKey']);
+            this.optinReader = new OptinDataReader(this.catapultReader, this.nisUrl, 7890, nisNetworkId)
             this.spinner.stop(true);
 
             console.log('');
-            console.log('Catapult Address: ' + chalk.green(this.catapultAddress));
-            console.log('NIS1 Address:     ' + chalk.green(this.nisAddress));
-            console.log('');
+            console.log('Catapult Network Id: ' + chalk.yellow('' + catNetworkId))
+            console.log('NIS1 Network Id:     ' + chalk.yellow('' + nisNetworkId))
+
+            if (this.isAuthenticatedCommand === true) {
+                this.loadAccounts(params['privateKey']);
+                console.log('Catapult Address:    ' + chalk.green(this.catapultAddress));
+                console.log('NIS1 Address:        ' + chalk.green(this.nisAddress));
+                console.log('');
+            }
 
             return params;
         }

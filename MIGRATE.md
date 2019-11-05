@@ -29,9 +29,9 @@ Available migration commands:
 
 | Command | Description |
 | --- | --- |
-| `nem2-sandbox migrate namespace` | Migration Tool for Namespaces |
-| `nem2-sandbox migrate mosaic` | Migration Tool for Mosaic definitions |
-| `nem2-sandbox migrate multisig` | Migration Tool for Multi-Signature Accounts |
+| `nem2-sandbox nis2catapult namespace` | Migration Tool for Namespaces |
+| `nem2-sandbox nis2catapult mosaic` | Migration Tool for Mosaic definitions |
+| `nem2-sandbox nis2catapult multisig` | Migration Tool for Multi-Signature Accounts |
 
 #### Example of migration of registered namespaces
 
