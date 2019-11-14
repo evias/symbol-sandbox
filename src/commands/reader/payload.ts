@@ -20,6 +20,7 @@ import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
     TransactionMapping,
+    Convert,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -47,7 +48,8 @@ const swap16 = (val: string) => {
 }
 
 export interface DynamicSize {
-    sizeIdx: number
+    sizeIdx: number,
+    multiplier?: number
 }
 
 export interface TransactionBufferSpec {
@@ -78,7 +80,7 @@ export class TransactionBuffers {
         {type: '5043', sizes: [2, 2, -1], keys: ['Restriction Type', 'Modifications Count', 'Modifications']},
         {type: '5141', sizes: [16, 16, 16, 16, 2, 16, 2], keys: ['Mosaic Id', 'Reference Mosaic Id', 'Restriction Key', 'Previous Value', 'Previous Type', 'New Value', 'New Type']},
         {type: '5142', sizes: [16, 16, 50, 16, 16], keys: ['Mosaic Id', 'Restriction Key', 'Target Address', 'Previous Value', 'New Value']},
-        {type: '5441', sizes: [50, 4, 2, {sizeIdx: 1}, -1], keys: ['Recipient', 'Message Size', 'Mosaics Count', 'Message', 'Mosaics']},
+        {type: '5441', sizes: [50, 2, 4, 8, {sizeIdx: 1, multiplier: 32}, {sizeIdx: 2}], keys: ['Recipient', 'Mosaics Count', 'Message Size', 'Transfer Reserved', 'Mosaics', 'Message']},
     ]
 }
 
@@ -114,9 +116,11 @@ export default class extends BaseCommand {
         }
 
         const transaction = TransactionMapping.createFromPayload(bytes)
-        const headerText = this.readTransactionHeader(bytes)
-        const rawType = bytes.substr(8 + 128 + 64 + 4, 4)
-        const bodyText = this.readTransactionBody(rawType, bytes.substr(8 + 128 + 64 + 4 + 4 + 16 + 16))
+        const headerText = this.readTransactionHeader(bytes);
+        const typeOffset = 8 + 8 + 128 + 64 + 8 + 2 + 2;
+        const headerLength = 8 + 8 + 128 + 64 + 8 + 2 + 2 + 4 + 16 + 16;
+        const rawType = bytes.substr(typeOffset, 4);
+        const bodyText = this.readTransactionBody(rawType, bytes.substr(headerLength));
 
         let text: string = ''
         text += 'Transaction Header:\n'
@@ -127,33 +131,42 @@ export default class extends BaseCommand {
         console.log(text);
     }
 
-    private readTransactionHeader(bytes: string): string {
-        // Transaction byte size data
+    private readTransactionHeader(
+        bytes: string
+    ): string {
+
+        // Transaction byte size header data
         const sizeLength        = 8,
+              headerReserved1   = 8,
               signatureLength   = 128,
               publicKeyLength   = 64,
-              versionLength     = 4,
+              bodyReserved1     = 8,
+              versionLength     = 2,
+              networkLength     = 2,
               typeLength        = 4,
               feeLength         = 16,
               deadlineLength    = 16;
 
         // Transaction byte data positions
-        const signatureOffset = sizeLength,
+        const 
+              signatureOffset = sizeLength + headerReserved1, // header_reserved
               publicKeyOffset = signatureOffset + signatureLength,
-              versionOffset = publicKeyOffset + publicKeyLength,
-              typeOffset = versionOffset + versionLength,
+              versionOffset = publicKeyOffset + publicKeyLength + bodyReserved1, // body_reserved
+              networkOffset = versionOffset + versionLength,
+              typeOffset = networkOffset + networkLength,
               feeOffset = typeOffset + typeLength,
               deadlineOffset = feeOffset + feeLength,
               transactionOffset = deadlineOffset + deadlineLength;
 
         // Transaction byte data
         const sizeBytes         = bytes.substring(0, sizeLength),
-              signatureBytes    = bytes.substring(signatureOffset, publicKeyOffset),
-              publicKeyBytes    = bytes.substring(publicKeyOffset, versionOffset),
-              versionBytes      = bytes.substring(versionOffset, typeOffset),
-              typeBytes         = bytes.substring(typeOffset, feeOffset),
-              feeBytes          = bytes.substring(feeOffset, deadlineOffset),
-              deadlineBytes     = bytes.substring(deadlineOffset, transactionOffset),
+              signatureBytes    = bytes.substring(signatureOffset, signatureLength),
+              publicKeyBytes    = bytes.substring(publicKeyOffset, publicKeyLength),
+              versionBytes      = bytes.substring(versionOffset, versionLength),
+              networkBytes      = bytes.substring(networkOffset, networkLength),
+              typeBytes         = bytes.substring(typeOffset, typeLength),
+              feeBytes          = bytes.substring(feeOffset, feeLength),
+              deadlineBytes     = bytes.substring(deadlineOffset, deadlineLength),
               transactionBytes  = bytes.substring(transactionOffset);
 
         let text = '';
@@ -163,6 +176,7 @@ export default class extends BaseCommand {
         text += 'Signature:\t\t' + signatureBytes + '\n';
         text += 'Public Key:\t\t' + publicKeyBytes + '\n';
         text += 'Version:\t\t' + versionBytes + '\n';
+        text += 'Network Type:\t\t' + networkBytes + '\n';
         text += 'Type:\t\t\t' + typeBytes + '\n';
         text += 'Fee:\t\t\t' + feeBytes + '\n';
         text += 'Deadline:\t\t' + deadlineBytes + '\n';
@@ -193,6 +207,7 @@ export default class extends BaseCommand {
         for (let i = 0, m = sizes.length, cursor = 0; i < m; i++) {
             const isUntilEnd = sizes[i] === -1
             const isDynamic = (sizes[i] as DynamicSize).sizeIdx !== undefined
+            const hasMultiplier = (sizes[i] as DynamicSize).multiplier !== undefined && (sizes[i] as DynamicSize).multiplier > 1
 
             let fieldBytes: string = ''
             let byteSize: number = 0
@@ -204,9 +219,17 @@ export default class extends BaseCommand {
                 // field length is defined in bytes dynamically
                 const dynamicIdx = (sizes[i] as DynamicSize).sizeIdx
                 const dynamicLen = sizes[dynamicIdx] as number
-                const parsedSize = UInt64.fromHex('000000000000' + swap16(bytes.substr(cursors[dynamicIdx], dynamicLen)))
+                const dynamicSize = bytes.substr(cursors[dynamicIdx], dynamicLen);
 
-                byteSize = 2 * parsedSize.compact()
+                // LE is used in catapult payload, BE needed for JS
+                const swapEndianness = dynamicLen > 2 ? swap16(dynamicSize) : dynamicSize;
+                const dynamicSwapped = parseInt(swapEndianness, 16);
+
+                const multipliedSize = hasMultiplier ? dynamicSwapped * (sizes[i] as DynamicSize).multiplier : dynamicSwapped;
+                const uint64Prepend = '0'.repeat(16 - multipliedSize.toString(16).length)
+                const parsedSize = UInt64.fromHex(uint64Prepend + multipliedSize.toString(16))
+
+                byteSize = hasMultiplier ? parsedSize.compact() : 2 * parsedSize.compact()
                 fieldBytes = bytes.substr(cursor, byteSize)
             }
             else {

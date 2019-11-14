@@ -317,21 +317,15 @@ export default class extends BaseCommand {
         orderBookAddress: Address,
     ): MultisigAccountModificationTransaction
     {
-        const modifications = [
-            new MultisigCosignatoryModification(
-                CosignatoryModificationAction.Add,
-                takerAccount,
-            ),
-        ];
-
         console.log('getTakerOwnershipTransfer: Creating MultisigAccountModificationTransaction for SDEXX ownership transfer to Taker.');
-        console.log('getTakerOwnershipTransfer: Modifications: ' + JSON.stringify(modifications));
+        console.log('getTakerOwnershipTransfer: Modifications: ' + JSON.stringify([takerAccount]));
 
         const takerOwnershipTx = MultisigAccountModificationTransaction.create(
             Deadline.create(),
             1, // 1of1
             1, // 1of1
-            modifications,
+            [takerAccount],
+            [],
             this.networkType
         );
 

@@ -106,10 +106,10 @@ export default class extends BaseCommand {
         // read mosaic Id from namespace name
         const namespaceHttp = new NamespaceHttp(this.endpointUrl);
         const namespaceId = new NamespaceId(this.networkConfig.currencyMosaic);
-        const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
+        //const mosaicId = await namespaceHttp.getLinkedMosaicId(namespaceId).toPromise();
 
         // attach mosaicId !
-        mosaics.push(new Mosaic(mosaicId, UInt64.fromUint(amount)));
+        mosaics.push(new Mosaic(namespaceId, UInt64.fromUint(amount)));
 
         const account   = this.getAccount("nemesis1");
         const message   = PlainMessage.create("Simple transfer of " + amount + " nem.xem");

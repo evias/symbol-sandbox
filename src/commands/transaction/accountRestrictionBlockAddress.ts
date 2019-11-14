@@ -23,7 +23,7 @@ import {
     Deadline,
     TransactionHttp,
     AccountRestrictionModificationAction,
-    AccountRestrictionType,
+    AccountRestrictionFlags,
     AccountRestrictionModification,
     AccountRestrictionTransaction,
     UInt64,
@@ -68,16 +68,13 @@ export default class extends BaseCommand {
     public async createAddressPropertyModification(recipient: Address): Promise<Object>
     {
         const account   = this.getAccount("tester1");
-        const addressPropertyFilter = AccountRestrictionModification.createForAddress(
-            AccountRestrictionModificationAction.Add,
-            recipient,
-        );
 
         // tester1 blocks incoming transactions from tester4
         const addressModification = AccountRestrictionTransaction.createAddressRestrictionModificationTransaction(
             Deadline.create(), 
-            AccountRestrictionType.BlockIncomingAddress, 
-            [addressPropertyFilter],
+            AccountRestrictionFlags.BlockIncomingAddress, 
+            [recipient],
+            [],
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );

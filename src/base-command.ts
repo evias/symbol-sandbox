@@ -32,11 +32,9 @@ const fs = require('fs')
 export abstract class BaseCommand extends Command {
     public spinner = new Spinner('processing.. %s');
 
-    public endpointUrl = "http://api-01.mt.eu-central-1.nemtech.network:3000";
-    //TESTNET PUBLIC_TEST public endpointUrl = "http://api-01-edge-xp.us-west-1.nemtech.network:3000";
-    //TESTNET MIJIN_TEST public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
-    //TESTNET PUBLIC_TEST public generationHash = "988C4CDCE4D188013C13DE7914C7FD4D626169EF256722F61C52EFBE06BD5A2C";
-    public generationHash = "17FA4747F5014B50413CCF968749604D728D7065DC504291EEE556899A534CBB";
+    public endpointUrl: string = "http://localhost:3000";
+    public generationHash: string = '';
+
     public networkType: NetworkType;
     protected accounts = {};
 
@@ -57,7 +55,7 @@ export abstract class BaseCommand extends Command {
 
     public async setupConfig() {
         const networkHttp = new NetworkHttp(this.endpointUrl)
-        this.networkType = await networkHttp.getNetworkType().toPromise()
+        this.networkType = await networkHttp.getNetworkType().toPromise();
 
         //XXX read generation hash from node
         //XXX read currency mosaic from node
@@ -92,6 +90,8 @@ export abstract class BaseCommand extends Command {
 
         const networkFile = fs.readFileSync(__dirname + '/../../conf/network.json', 'utf8')
         this.networkConfig = JSON.parse(networkFile)
+        this.endpointUrl = this.networkConfig.endpointUrl;
+        this.generationHash = this.networkConfig.generationHash;
     }
 
 

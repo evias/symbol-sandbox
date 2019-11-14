@@ -146,12 +146,12 @@ export default class extends BaseCommand {
         )
 
         const accountMetadataTx = currentValue.pipe(
-            map((metadata: Metadata) => {
+            mergeMap((metadata: Metadata, index: number) => {
 
                 console.log(chalk.yellow('1) Found metadata: ', JSON.stringify(metadata)))
 
                 const currentValueBytes = Convert.utf8ToUint8(metadata.metadataEntry.value);
-                return AccountMetadataTransaction.create(
+                return observableFrom(AccountMetadataTransaction.create(
                     Deadline.create(),
                     targetAccount.publicKey,
                     keyBytes,
@@ -159,7 +159,7 @@ export default class extends BaseCommand {
                     decodeHexHelper(Convert.xor(currentValueBytes, newValueBytes)),
                     this.networkType,
                     UInt64.fromUint(1000000), // 1 XEM fee
-                )
+                ))
             }),
             catchError((err: Error) => {
                 const error = JSON.parse(err.message);

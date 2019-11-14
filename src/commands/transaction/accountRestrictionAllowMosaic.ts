@@ -23,7 +23,7 @@ import {
     Deadline,
     TransactionHttp,
     AccountRestrictionModificationAction,
-    AccountRestrictionType,
+    AccountRestrictionFlags,
     AccountRestrictionModification,
     AccountRestrictionTransaction,
     UInt64,
@@ -72,17 +72,12 @@ export default class extends BaseCommand {
     {
         const account = this.getAccount("multisig1");
 
-        // Add `mosaicId` MosaicId to the AccountPropertyMosaic filter
-        const mosaicPropertyFilter = AccountRestrictionModification.createForMosaic(
-            AccountRestrictionModificationAction.Add,
-            new MosaicId(mosaicId),
-        );
-
         // Add `mosaicId` property filter and *allow* mosaic for tester1
         const addressModification = AccountRestrictionTransaction.createMosaicRestrictionModificationTransaction(
             Deadline.create(), 
-            AccountRestrictionType.AllowMosaic, 
-            [mosaicPropertyFilter],
+            AccountRestrictionFlags.AllowMosaic, 
+            [new MosaicId(mosaicId)],
+            [],
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
