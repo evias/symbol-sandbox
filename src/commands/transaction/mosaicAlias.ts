@@ -26,6 +26,7 @@ import {
     MosaicAliasTransaction,
     AliasAction,
     UInt64,
+    RawUInt64,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -69,14 +70,18 @@ export default class extends BaseCommand {
         }
 
         let mosaicId;
-        try {
-            mosaicId = OptionsResolver(options,
-                'mosaicId',
-                () => { return ''; },
-                'Enter a mosaicId: ');
-        } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid mosaicId (Array JSON ex: "[664046103, 198505464]")');
+        mosaicId = OptionsResolver(options,
+            'mosaicId',
+            () => { return ''; },
+            'Enter a mosaicId (array notation or hexadecimal): ');
+
+        if (mosaicId.indexOf('[') === 0) {
+            // from array notation
+            mosaicId = new MosaicId(JSON.parse(mosaicId))
+        }
+        else {
+            // from hex
+            mosaicId = new MosaicId(RawUInt64.fromHex(mosaicId))
         }
 
         // add a block monitor
@@ -88,7 +93,7 @@ export default class extends BaseCommand {
         return await this.createMosaicAlias(namespaceName, mosaicId);
     }
 
-    public async createMosaicAlias(namespace: string, mosIdJSON: string): Promise<Object>
+    public async createMosaicAlias(namespace: string, mosaicId: MosaicId): Promise<Object>
     {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
@@ -97,13 +102,12 @@ export default class extends BaseCommand {
 
         const actionType  = AliasAction.Link;
         const namespaceId = new NamespaceId(namespace);
-        const mosaicId    = JSON.parse(mosIdJSON); 
 
         const aliasTx = MosaicAliasTransaction.create(
             Deadline.create(),
             actionType,
             namespaceId,
-            new MosaicId(mosaicId),
+            mosaicId,
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );

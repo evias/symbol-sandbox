@@ -126,6 +126,7 @@ export default class extends BaseCommand {
         );
 
         const signedTransaction = account.sign(transferTransaction, this.generationHash);
+        console.log(chalk.yellow('Recipient Address: ', recipient.plain()));
         console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
 
         // announce/broadcast transaction
