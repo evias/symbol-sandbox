@@ -70,7 +70,7 @@ export default class extends BaseCommand {
                 'Enter a recipient address: ')
             recipient = Address.createFromRawAddress(recipientAddress)
         } catch (err) {
-            recipient = this.getAddress("tester2")
+            recipient = this.getAddress("tester1")
         }
 
         try {
