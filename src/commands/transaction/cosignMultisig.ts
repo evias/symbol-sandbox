@@ -91,7 +91,7 @@ export default class extends BaseCommand {
 
             // read aggregate-bonded transactions
             let unsignedTxes = await accountHttp
-                                        .aggregateBondedTransactions(multisig.publicAccount.address)
+                                        .getAccountPartialTransactions(multisig.publicAccount.address)
                                         .toPromise();
 
             if (! unsignedTxes.length) {
