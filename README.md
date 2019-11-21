@@ -16,6 +16,11 @@ This package aims to provide with a command line interface helping developers to
 
 Package licensed under [Apache v2.0](LICENSE) License.
 
+## Protocol Compatibility
+
+- [catapult-server@0.9.0.1](https://github.com/nemtech/catapult-server/releases/tag/v0.9.0.1)
+- [Fushicho2 Client Diff](https://github.com/evias/nem2-sandbox/compare/v0.8.4..v0.9.2)
+
 ## Donations / Pot de vin
 
 Donations can be made with cryptocurrencies and will be used for running the project!
