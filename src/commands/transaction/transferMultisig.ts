@@ -30,6 +30,8 @@ import {
     Listener,
     AggregateTransaction,
     NamespaceId,
+    BlockHttp,
+    Transaction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -102,7 +104,10 @@ export default class extends BaseCommand {
         const multisigTx = AggregateTransaction.createBonded(
             Deadline.create(),
             [transferTx.toAggregate(multisigAcct)],
-            this.networkType);
+            this.networkType,
+            [],
+            UInt64.fromUint(1000000), // 1 XEM fee
+        );
 
         // cosignatory #1 initiates the transaction (first signature)
         const signedMultisigTx = cosignatoryAccount.sign(multisigTx, this.generationHash);
@@ -121,7 +126,9 @@ export default class extends BaseCommand {
             new Mosaic(mosaicId, UInt64.fromUint(absoluteAmount)),
             UInt64.fromUint(480), // ~2 hours
             signedMultisigTx,
-            this.networkType);
+            this.networkType,
+            UInt64.fromUint(1000000), // 1 XEM fee
+        );
 
         const signedLockFundsTx = cosignatoryAccount.sign(lockFundsTx, this.generationHash);
 
@@ -134,6 +141,11 @@ export default class extends BaseCommand {
         const transactionHttp = new TransactionHttp(this.endpointUrl);
 
         return new Promise(async (resolve, reject) => {
+
+        // -------------------------------------
+        // Step 1: Announce LockFundsTransaction
+        // -------------------------------------
+
             // announce lock funds and subscribe to errors
             transactionHttp
                 .announce(signedLockFundsTx)
@@ -145,29 +157,41 @@ export default class extends BaseCommand {
                     console.log('Waiting to be included in a block..');
                 }, err => console.error(err));
 
-            // when the lock funds is confirmed, send the aggregate-bonded
-            return observableFrom(listener.confirmed(cosignatoryAccount.address)).pipe(
-                filter((transaction) =>
-                        transaction.transactionInfo !== undefined
-                    && transaction.transactionInfo.hash === signedLockFundsTx.hash),
-                mergeMap(ignored => {
-                    let text = chalk.green('LockFunds Confirmed!');
-                    console.log(text, '\n');
+        // ----------------------------------------------------------------------------
+        // Step 2: Announce AggregateBonded with MultisigAccountModificationTransaction
+        // ----------------------------------------------------------------------------
 
-                    // add address monitor
+            const blockListener = new Listener(this.endpointUrl)
+            const blockHttp = new BlockHttp(this.endpointUrl)
+            const lockFundsHash = signedLockFundsTx.hash
+
+            // This step should only happen after the lock funds got confirmed.
+            return blockListener.open().then(() => {
+                return blockListener.newBlock().subscribe(async (block) => {
+                    const txes = await blockHttp.getBlockTransactions('' + block.height.compact()).toPromise();
+                    const hasLock = txes.find((tx: Transaction) => tx.transactionInfo.hash === lockFundsHash) !== undefined;
+
+                    if (!hasLock) {
+                        return ;
+                    }
+
+                    console.log('');
+                    console.log(chalk.green('Successfully announced lock funds transactions with hash: ' + lockFundsHash));
                     this.monitorAddress(multisigAcct.address.plain());
 
-                    // announce multisig transaction
-                    return transactionHttp.announceAggregateBonded(signedMultisigTx);
-                })
-            )
-            .subscribe(announcedAggregateBonded => {
-                console.log('Announced aggregate bonded transaction');
-                console.log('Hash:   ', signedMultisigTx.hash);
-                console.log('Signer: ', signedMultisigTx.signerPublicKey, '\n');
-
-                return resolve(announcedAggregateBonded);
-            }, err => console.error(err));
+                    blockListener.terminate();
+                    transactionHttp.announceAggregateBonded(signedMultisigTx).subscribe(() => {
+                        console.log('');
+                        console.log('Announced aggregate bonded transaction with transfer transaction');
+                        console.log('Hash:   ', signedMultisigTx.hash);
+                        console.log('Signer: ', signedMultisigTx.signerPublicKey, '\n');
+                    }, (err) => {
+                        let text = '';
+                        text += 'createModifyMultisigAccount() - Error';
+                        console.log(text, err.response !== undefined ? err.response.text : err);
+                    });
+                });
+            });
         });
     }
 

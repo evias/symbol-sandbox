@@ -35,8 +35,10 @@ import {
     AccountHttp,
     Listener,
     BlockHttp,
+    Transaction,
+    BlockInfo,
 } from 'nem2-sdk';
-import {from as observableFrom} from 'rxjs';
+import {from as observableFrom, Observable} from 'rxjs';
 import {filter, map, mergeMap, first} from 'rxjs/operators';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -131,13 +133,10 @@ export default class extends BaseCommand {
         };
 
         // add modification for each cosigner needed
-        let modifications = [];
+        let publicKeysAdded = [];
         for (let i = 0; i < numCosig; i++) {
             const key = 'cosig' + (i+1);
-            modifications.push(new MultisigCosignatoryModification(
-                CosignatoryModificationAction.Add,
-                cosignatories[key],
-            ));
+            publicKeysAdded.push(cosignatories[key]);
         }
 
         const modifType  = CosignatoryModificationAction.Add;
@@ -145,7 +144,8 @@ export default class extends BaseCommand {
             Deadline.create(),
             reqCosig, // 2 minimum cosignatories
             reqCosig, // 2 cosignatories needed for removal of cosignatory
-            modifications,
+            publicKeysAdded,
+            [],
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
         );
@@ -197,10 +197,15 @@ export default class extends BaseCommand {
 
         // This step should only happen after the lock funds got confirmed.
         return blockListener.open().then(() => {
-            return blockListener.newBlock().pipe(
-                mergeMap(_ => blockHttp.getBlockTransactions(_.height.compact())),
-                filter(txes => txes.find(tx => tx.transactionInfo.hash === lockFundsHash) !== undefined)
-            ).subscribe(block => {
+            return blockListener.newBlock().subscribe(async (block) => {
+                const txes = await blockHttp.getBlockTransactions('' + block.height.compact()).toPromise();
+                const hasLock = txes.find((tx: Transaction) => tx.transactionInfo.hash === lockFundsHash) !== undefined;
+
+                if (!hasLock) {
+                    return ;
+                }
+
+                blockListener.terminate();
                 transactionHttp.announceAggregateBonded(signedAggregateTx).subscribe(() => {
                     console.log('Announced aggregate bonded transaction with multisig account modification');
                     console.log('Hash:   ', signedAggregateTx.hash);
@@ -211,7 +216,7 @@ export default class extends BaseCommand {
                     console.log(text, err.response !== undefined ? err.response.text : err);
                 });
             });
-        })        
+        });
     }
 
 }
