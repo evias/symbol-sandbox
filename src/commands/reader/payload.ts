@@ -62,25 +62,27 @@ export class TransactionBuffers {
 
     //XXX read buffers from catbuffer .cats files
     public static readonly buffers: TransactionBufferSpec[] = [
-        {type: '4C41', sizes: [64, 2], keys: ['Remote public key', 'Link action']},
-        {type: '4D41', sizes: [8, 16, 2, 2, 16], keys: ['Nonce', 'Mosaic Id', 'Flags', 'Divisibility', 'Duration']},
-        {type: '4D42', sizes: [16, 2, 16], keys: ['Mosaic Id', 'Change Action', 'Delta']},
-        {type: '4E41', sizes: [2, 16, 16, 2, -1], keys: ['Reg. Type', 'Parent Id/Duration', 'Namespace Id', 'Name Size', 'Name']},
-        {type: '4E42', sizes: [2, 16, 50], keys: ['Alias Action', 'Namespace Id', 'Address']},
-        {type: '4E43', sizes: [2, 16, 16], keys: ['Alias Action', 'Namespace Id', 'Mosaic Id']},
-        {type: '4441', sizes: [64, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Value Size Delta', 'Value Size', 'Value']},
-        {type: '4442', sizes: [64, 16, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Target Mosaic Id', 'Value Size Delta', 'Value Size', 'Value']},
-        {type: '4443', sizes: [64, 16, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Target Namespace Id', 'Value Size Delta', 'Value Size', 'Value']},
-        {type: '5541', sizes: [4, 4, 2, -1], keys: ['Min Removal Delta', 'Min Approval Delta', 'Modifications Count', 'Modifications']},
-        {type: '4841', sizes: [16, 16, 64], keys: ['Mosaic', 'Duration', 'Aggregate Hash']},
-        {type: '5241', sizes: [16, 16, 2, 64, 50], keys: ['Mosaic', 'Duration', 'Hash Algorithm', 'Secret', 'Lock Recipient']},
-        {type: '5242', sizes: [2, 64, 50, 4, -1], keys: ['Hash Algorithm', 'Secret', 'Lock Recipient', 'Proof Size', 'Proof']},
-        {type: '5041', sizes: [2, 2, -1], keys: ['Restriction Type', 'Modifications Count', 'Modifications']},
-        {type: '5042', sizes: [2, 2, -1], keys: ['Restriction Type', 'Modifications Count', 'Modifications']},
-        {type: '5043', sizes: [2, 2, -1], keys: ['Restriction Type', 'Modifications Count', 'Modifications']},
-        {type: '5141', sizes: [16, 16, 16, 16, 2, 16, 2], keys: ['Mosaic Id', 'Reference Mosaic Id', 'Restriction Key', 'Previous Value', 'Previous Type', 'New Value', 'New Type']},
-        {type: '5142', sizes: [16, 16, 50, 16, 16], keys: ['Mosaic Id', 'Restriction Key', 'Target Address', 'Previous Value', 'New Value']},
-        {type: '5441', sizes: [50, 2, 4, 8, {sizeIdx: 1, multiplier: 32}, {sizeIdx: 2}], keys: ['Recipient', 'Mosaics Count', 'Message Size', 'Transfer Reserved', 'Mosaics', 'Message']},
+        /* account_link */ {type: '4C41', sizes: [64, 2], keys: ['Remote public key', 'Link action']},
+        /* mosaic_definition */ {type: '4D41', sizes: [16, 16, 8, 2, 2], keys: ['Mosaic Id', 'Duration', 'Nonce', 'Flags', 'Divisibility']},
+        /* mosaic_supply_change */ {type: '4D42', sizes: [16, 16, 2], keys: ['Mosaic Id', 'Delta', 'Change Action']},
+        /* namespace_registration */ {type: '4E41', sizes: [16, 16, 2, 2, -1], keys: ['Parent Id/Duration', 'Namespace Id', 'Reg. Type', 'Name Size', 'Name']},
+        /* address_alias */ {type: '4E42', sizes: [16, 50, 2], keys: ['Namespace Id', 'Address', 'Alias Action']},
+        /* mosaic_alias */ {type: '4E43', sizes: [16, 16, 2], keys: ['Namespace Id', 'Mosaic Id', 'Alias Action']},
+        /* account_metadata */ {type: '4441', sizes: [64, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Value Size Delta', 'Value Size', 'Value']},
+        /* mosaic_metadata */ {type: '4442', sizes: [64, 16, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Target Mosaic Id', 'Value Size Delta', 'Value Size', 'Value']},
+        /* namespace_metadata */ {type: '4443', sizes: [64, 16, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Target Namespace Id', 'Value Size Delta', 'Value Size', 'Value']},
+        /* multisig_account_modification */ {type: '5541', sizes: [4, 4, 2, 2, 8, {sizeIdx: 2, multiplier: 32}, {sizeIdx: 3, multiplier: 32}], keys: ['Min Removal Delta', 'Min Approval Delta', 'Additions #', 'Deletions #', 'Body Reserved', 'Additions', 'Deletions']},
+        /* lock_hash */ {type: '4841', sizes: [32, 16, 64], keys: ['Mosaic', 'Duration', 'Aggregate Hash']},
+        /* secret_lock */ {type: '5241', sizes: [64, 32, 16, 2, 50], keys: ['Secret', 'Mosaic', 'Duration', 'Hash Algorithm', 'Lock Recipient']},
+        /* secret_proof */ {type: '5242', sizes: [64, 4, 2, 50, -1], keys: ['Secret', 'Proof Size', 'Hash Algorithm', 'Lock Recipient', 'Proof']},
+        /* account_address_restriction */ {type: '5041', sizes: [4, 2, 2, 8, {sizeIdx: 1, multiplier: 50}, -1], keys: ['Restriction Flags', 'Additions #', 'Deletions #', 'Body Reserved', 'Additions', 'Deletions']},
+        /* account_mosaic_restriction */ {type: '5042', sizes: [4, 2, 2, 8, {sizeIdx: 1, multiplier: 16}, -1], keys: ['Restriction Flags', 'Additions #', 'Deletions #', 'Body Reserved', 'Additions', 'Deletions']},
+        /* account_operation_restriction */ {type: '5043', sizes: [4, 2, 2, 8, {sizeIdx: 1, multiplier: 4}, -1], keys: ['Restriction Flags', 'Additions #', 'Deletions #', 'Body Reserved', 'Additions', 'Deletions']},
+        /* mosaic_global_restriction */ {type: '5141', sizes: [16, 16, 16, 16, 16, 2, 2], keys: ['Mosaic Id', 'Reference Mosaic Id', 'Restriction Key', 'Previous Value', 'New Value', 'Previous Type', 'New Type']},
+        /* mosaic_address_restriction */ {type: '5142', sizes: [16, 16, 16, 16, 50], keys: ['Mosaic Id', 'Restriction Key', 'Previous Value', 'New Value', 'Target Address']},
+        /* transfer */ {type: '5441', sizes: [50, 2, 4, 8, {sizeIdx: 1, multiplier: 32}, {sizeIdx: 2}], keys: ['Recipient', 'Mosaics Count', 'Message Size', 'Transfer Reserved', 'Mosaics', 'Message']},
+        /** aggregate complete */ {type: '4141', sizes: [64, 8, 8, {sizeIdx: 1}, -1], keys: ['Merkle Root Hash', 'Payload Size', 'Body Reserved', 'Transactions', 'Cosignatures']},
+        /** aggregate bonded */ {type: '4142', sizes: [64, 8, 8, {sizeIdx: 1}, -1], keys: ['Merkle Root Hash', 'Payload Size', 'Body Reserved', 'Transactions', 'Cosignatures']},
     ]
 }
 
@@ -159,22 +161,26 @@ export default class extends BaseCommand {
               transactionOffset = deadlineOffset + deadlineLength;
 
         // Transaction byte data
-        const sizeBytes         = bytes.substring(0, sizeLength),
-              signatureBytes    = bytes.substring(signatureOffset, signatureLength),
-              publicKeyBytes    = bytes.substring(publicKeyOffset, publicKeyLength),
-              versionBytes      = bytes.substring(versionOffset, versionLength),
-              networkBytes      = bytes.substring(networkOffset, networkLength),
-              typeBytes         = bytes.substring(typeOffset, typeLength),
-              feeBytes          = bytes.substring(feeOffset, feeLength),
-              deadlineBytes     = bytes.substring(deadlineOffset, deadlineLength),
-              transactionBytes  = bytes.substring(transactionOffset);
+        const sizeBytes         = bytes.substr(0, sizeLength),
+              headerReservedBytes = bytes.substr(sizeLength, headerReserved1),
+              signatureBytes    = bytes.substr(signatureOffset, signatureLength),
+              publicKeyBytes    = bytes.substr(publicKeyOffset, publicKeyLength),
+              bodyReservedBytes = bytes.substr(publicKeyOffset+publicKeyLength, bodyReserved1),
+              versionBytes      = bytes.substr(versionOffset, versionLength),
+              networkBytes      = bytes.substr(networkOffset, networkLength),
+              typeBytes         = bytes.substr(typeOffset, typeLength),
+              feeBytes          = bytes.substr(feeOffset, feeLength),
+              deadlineBytes     = bytes.substr(deadlineOffset, deadlineLength),
+              transactionBytes  = bytes.substr(transactionOffset);
 
         let text = '';
         text += chalk.green('Input:\t') + chalk.bold(bytes) + '\n';
         text += '-'.repeat(20) + '\n\n';
         text += 'Size:\t\t\t' + sizeBytes + '\n';
+        text += 'Header Reserved:\t' + headerReservedBytes + '\n';
         text += 'Signature:\t\t' + signatureBytes + '\n';
         text += 'Public Key:\t\t' + publicKeyBytes + '\n';
+        text += 'Body Reserved:\t\t' + bodyReservedBytes + '\n';
         text += 'Version:\t\t' + versionBytes + '\n';
         text += 'Network Type:\t\t' + networkBytes + '\n';
         text += 'Type:\t\t\t' + typeBytes + '\n';

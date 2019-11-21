@@ -34,16 +34,21 @@ export class CommandOptions extends BaseOptions {
         flag: 'n',
         description: 'Namespace name',
     })
+    name: string;
     @option({
         flag: 'p',
         description: 'Parent Namespace name',
     })
-    name: string;
     parent?: string;
+    @option({
+        flag: 'd',
+        description: 'Block Duration',
+    })
+    duration?: number;
 }
 
 @command({
-    description: 'Check for cow compatibility of RegisterNamespace',
+    description: 'Prepare and broadcast RegisterNamespace',
 })
 export default class extends BaseCommand {
 
@@ -66,6 +71,7 @@ export default class extends BaseCommand {
                 'parentName',
                 () => { return ''; },
                 'Enter a namespace parent name: ');
+
         } catch (err) {
             console.log(options);
             throw new ExpectedError('Enter a valid namespace name');
@@ -77,10 +83,10 @@ export default class extends BaseCommand {
         const address = this.getAddress("tester1").plain();
         this.monitorAddress(address);
 
-        return await this.registerNamespace(name, parentName);
+        return await this.registerNamespace(options, name, parentName);
     }
 
-    public async registerNamespace(name: string, parentName: string): Promise<Object>
+    public async registerNamespace(options: CommandOptions, name: string, parentName: string): Promise<Object>
     {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
@@ -99,10 +105,22 @@ export default class extends BaseCommand {
             );
         }
         else {
+
+            let duration: number;
+
+            duration = parseInt(OptionsResolver(options,
+                'duration',
+                () => { return ''; },
+                'Enter a block duration: '));
+
+            if (isNaN(duration) || duration <= 0) {
+                duration = 1000; // 1000 blocks default
+            }
+
             registerTx = NamespaceRegistrationTransaction.createRootNamespace(
                 Deadline.create(),
                 name,
-                UInt64.fromUint(100000), // 100'000 blocks
+                UInt64.fromUint(duration), // 100'000 blocks
                 this.networkType,
                 UInt64.fromUint(1000000), // 1 XEM fee
             );
