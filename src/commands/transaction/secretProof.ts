@@ -99,7 +99,7 @@ export default class extends BaseCommand {
             Deadline.create(),
             HashType.Op_Sha3_256,
             secret,
-            initiator,
+            prover.address,
             proof,
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
