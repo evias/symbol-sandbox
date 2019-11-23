@@ -46,8 +46,6 @@ export abstract class BaseCommand extends Command {
     constructor() {
         super();
         this.spinner.setSpinnerString('|/-\\');
-        this.listenerBlocks = new Listener(this.endpointUrl);
-        this.spinner.setSpinnerString('|/-\\');
 
         this.readAccountsConfig()
         this.readNetworkConfig()
@@ -109,6 +107,7 @@ export abstract class BaseCommand extends Command {
     }
 
     public monitorBlocks(): any {
+        this.listenerBlocks = new Listener(this.endpointUrl);
         this.listenerBlocks.open().then(() => {
 
             this.blockSubscription = this.listenerBlocks.newBlock()
@@ -182,7 +181,9 @@ export abstract class BaseCommand extends Command {
         Object.keys(this.listenersAddresses)
               .map((address) => { this.listenersAddresses[address].close(); });
 
-        this.listenerBlocks.close();
+        if (this.listenerBlocks) {
+            this.listenerBlocks.close();
+        }
     }
 
     public readUIntArgument(
