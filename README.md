@@ -32,11 +32,13 @@ Donations can be made with cryptocurrencies and will be used for running the pro
 | --- | --- |
 | [eVias](https://github.com/evias) | Project Lead |
 
-# Usage
+# Installation
 
 1. Clone the Project
 
-`git clone https://github.com/evias/nem2-sandbox.git`
+```
+git clone https://github.com/evias/nem2-sandbox.git`
+```
 
 2. Install the required dependencies.
 
@@ -53,8 +55,8 @@ In `conf/accounts.json`
 nemesis - using for transfer transaction or batch transaction to the recipient
 testers - testers[0] : using as default account, perform  most of the type of transaction
         - testers[1] : using for convert multisig, secretlock, secretProofs, transferAlias,                transferMosaicUnsorted, cosign trasnfer multisig and transferWithFee
-        - testers[2] : cosig converMultisig, consig Multisig, account restriction allow operation
-        - testers[3] : cosig converMultisig, consig Multisig, account restriction allow operation, account restriction block address
+        - testers[2] : using for cosig converMultisig, cosig Multisig, account restriction allow operation
+        - testers[3] : using cosig converMultisig, cosig Multisig, account restriction allow operation, account restriction block address
 multisig - using for multisig account
 
 In `conf/network.json`
@@ -67,7 +69,9 @@ harvestMosaic - harvest mosaic such as "nem.xem"
 
 4. Build
 
-`npm run build`
+```
+npm run build
+```
 
 # Examples
 
