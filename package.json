@@ -22,7 +22,7 @@
         "js-sha3": "^0.7.0",
         "nem-sdk": "1.6.7",
         "nem2-hd-wallets": "^0.4.2",
-        "nem2-sdk": "^0.14.3",
+        "nem2-sdk": "^0.15.0",
         "nem2-uri-scheme": "^0.3.2",
         "rxjs": "^6.5.3"
     },
