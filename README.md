@@ -32,6 +32,43 @@ Donations can be made with cryptocurrencies and will be used for running the pro
 | --- | --- |
 | [eVias](https://github.com/evias) | Project Lead |
 
+# Usage
+
+1. Clone the Project
+
+`git clone https://github.com/evias/nem2-sandbox.git`
+
+2. Install the required dependencies.
+
+```
+cd nem2-sandbox
+npm i
+```
+
+3. Configure `conf/accounts.json` and `conf/network.json`
+
+```
+In `conf/accounts.json`
+
+nemesis - using for transfer transaction or batch transaction to the recipient
+testers - testers[0] : using as default account, perform  most of the type of transaction
+        - testers[1] : using for convert multisig, secretlock, secretProofs, transferAlias,                transferMosaicUnsorted, cosign trasnfer multisig and transferWithFee
+        - testers[2] : cosig converMultisig, consig Multisig, account restriction allow operation
+        - testers[3] : cosig converMultisig, consig Multisig, account restriction allow operation, account restriction block address
+multisig - using for multisig account
+
+In `conf/network.json`
+
+endpointUrl - network API endpoint
+generationHash - network generationHash, get from here `endpointUrl/block/1`
+currencyMosaic - mosaic namespace such as "nem.xem"
+harvestMosaic - harvest mosaic such as "nem.xem"
+```
+
+4. Build
+
+`npm run build`
+
 # Examples
 
 Convert UInt64 array notation:
