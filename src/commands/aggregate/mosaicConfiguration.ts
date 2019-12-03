@@ -42,6 +42,7 @@ import {
     TransferTransaction,
     Mosaic,
     PlainMessage,
+    NetworkType,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -73,6 +74,11 @@ export class CommandOptions extends BaseOptions {
         description: 'Distribution amount',
     })
     amount: number;
+    @option({
+        flag: 'b',
+        description: 'Duration in Blocks',
+    })
+    duration: number;
 }
 
 @command({
@@ -90,6 +96,7 @@ export default class extends BaseCommand {
         await this.setupConfig()
         let name
         let divisibility
+        let duration
         let initialSupply
         let addresses: Address[] = []
         let distributionAmount: number = 0
@@ -109,6 +116,11 @@ export default class extends BaseCommand {
             initialSupply = OptionsResolver(options, 'initialSupply', () => { return ''; }, 'Enter an initial supply: ');
             initialSupply = UInt64.fromUint(initialSupply);
         } catch (err) { throw new ExpectedError('Please enter a valid initial supply'); }
+
+        try {
+            duration = OptionsResolver(options, 'duration', () => { return ''; }, 'Enter a duration: ');
+            duration = duration <= 0 ? 173000 : (this.networkType === NetworkType.TEST_NET && duration < 172800 ? 173000 : duration);
+        } catch (err) { throw new ExpectedError('Please enter a valid duration as a number of blocks'); }
 
         console.log('');
         const supplyMutable = readlineSync.keyInYN(
@@ -167,7 +179,8 @@ export default class extends BaseCommand {
         // STEP 1: register namespace(s)
         const namespaceTxes = await this.getCreateNamespaceTransactions(
             account.publicAccount,
-            name
+            name,
+            duration
         );
 
         // STEP 2.1: create MosaicDefinition transaction
@@ -245,7 +258,8 @@ export default class extends BaseCommand {
 
     public async getCreateNamespaceTransactions(
         publicAccount: PublicAccount,
-        namespaceName: string
+        namespaceName: string,
+        duration: number,
     ): Promise<Object>
     {
         const isSub = /\.{1,}/.test(namespaceName);
@@ -262,7 +276,7 @@ export default class extends BaseCommand {
             let registerTxes = [];
             for (let i = 0; i < parts.length; i++) {
                 const fullName = i === 0 ? parts[0] : parts.slice(0, i+1).join('.');
-                const registerTx = this.getCreateNamespaceTransaction(fullName);
+                const registerTx = this.getCreateNamespaceTransaction(fullName, duration);
                 registerTxes.push(registerTx.toAggregate(publicAccount));
 
                 try {
@@ -281,7 +295,8 @@ export default class extends BaseCommand {
     }
 
     public getCreateNamespaceTransaction(
-        namespaceName: string
+        namespaceName: string,
+        duration: number,
     ): NamespaceRegistrationTransaction
     {
         const isSub = /\.{1,}/.test(namespaceName);
@@ -306,7 +321,7 @@ export default class extends BaseCommand {
             registerTx = NamespaceRegistrationTransaction.createRootNamespace(
                 Deadline.create(),
                 namespaceName,
-                UInt64.fromUint(100000), // 100'000 blocks
+                UInt64.fromUint(duration),
                 this.networkType,
                 UInt64.fromUint(1000000)
             );
@@ -343,7 +358,7 @@ export default class extends BaseCommand {
             mosId,
             MosaicFlags.create(supplyMutable, transferable, restrictable),
             divisibility,
-            UInt64.fromUint(100000), // 100'000 blocks
+            UInt64.fromUint(500000), // 100'000 blocks
             this.networkType,
             UInt64.fromUint(1000000)
         );

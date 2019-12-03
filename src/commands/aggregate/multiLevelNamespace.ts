@@ -81,6 +81,7 @@ export default class extends BaseCommand {
 
         // STEP 1: register namespace(s)
         const namespaceTxes = await this.getCreateNamespaceTransactions(
+            options,
             account.publicAccount,
             name
         );
@@ -120,6 +121,7 @@ export default class extends BaseCommand {
     }
 
     public async getCreateNamespaceTransactions(
+        options: CommandOptions,
         publicAccount: PublicAccount,
         namespaceName: string
     ): Promise<Object>
@@ -138,7 +140,7 @@ export default class extends BaseCommand {
             let registerTxes = [];
             for (let i = 0; i < parts.length; i++) {
                 const fullName = i === 0 ? parts[0] : parts.slice(0, i+1).join('.');
-                const registerTx = this.getCreateNamespaceTransaction(fullName);
+                const registerTx = this.getCreateNamespaceTransaction(options, fullName);
                 registerTxes.push(registerTx.toAggregate(publicAccount));
 
                 try {
@@ -157,6 +159,7 @@ export default class extends BaseCommand {
     }
 
     public getCreateNamespaceTransaction(
+        options: CommandOptions,
         namespaceName: string
     ): NamespaceRegistrationTransaction
     {
@@ -178,11 +181,23 @@ export default class extends BaseCommand {
             
         }
         else {
+
+            let duration: number;
+
+            duration = parseInt(OptionsResolver(options,
+                'duration',
+                () => { return ''; },
+                'Enter a block duration: '));
+
+            if (isNaN(duration) || duration <= 0) {
+                duration = 1000; // 1000 blocks default
+            }
+
             // root namespace
             registerTx = NamespaceRegistrationTransaction.createRootNamespace(
                 Deadline.create(),
                 namespaceName,
-                UInt64.fromUint(100000), // 100'000 blocks
+                UInt64.fromUint(duration),
                 this.networkType,
                 UInt64.fromUint(1000000)
             );
