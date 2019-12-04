@@ -106,30 +106,37 @@ export default class extends BaseCommand {
 
     @metadata
     async execute(options: CommandOptions) {
-        let bytes;
+        let bytes
         try {
             bytes = OptionsResolver(options,
                 'bytes',
                 () => { return ''; },
-                'Enter a hexadecimal bytes list: ');
+                'Enter a hexadecimal bytes list: ')
         } catch (err) {
-            console.log(options);
-            throw new ExpectedError('Enter a valid input');
+            console.log(options)
+            throw new ExpectedError('Enter a valid input')
         }
 
         const transaction = TransactionMapping.createFromPayload(bytes)
-        const headerText = this.readTransactionHeader(bytes);
-        const typeOffset = 8 + 8 + 128 + 64 + 8 + 2 + 2;
-        const headerLength = 8 + 8 + 128 + 64 + 8 + 2 + 2 + 4 + 16 + 16;
-        const rawType = bytes.substr(typeOffset, 4);
-        const bodyText = this.readTransactionBody(rawType, bytes.substr(headerLength));
+        const headerText = this.readTransactionHeader(bytes)
+        const typeOffset = 8 + 8 + 128 + 64 + 8 + 2 + 2
+        const headerLength = 8 + 8 + 128 + 64 + 8 + 2 + 2 + 4 + 16 + 16
+        const rawType = bytes.substr(typeOffset, 4)
+        const bodyText = this.readTransactionBody(rawType, bytes.substr(headerLength))
 
         let text: string = ''
         text += 'Transaction Header:\n'
         text += headerText
 
-        text += 'Transaction Details:\n';
-        text += bodyText;
+        text += 'Transaction Details:\n'
+        text += bodyText
+
+        // in case of aggregates, run down of embedded transactions
+        if (rawType === '4141' || rawType === '4142') {
+            text += '\nEmbedded Transactions:\n'
+            text += this.readEmbeddedTransactions(rawType, bytes.substr(headerLength))
+        }
+
         console.log(text);
     }
 
@@ -194,7 +201,6 @@ export default class extends BaseCommand {
     private readTransactionBody(rawTransactionType: string, bytes: string): string
     {
         // Transaction byte size data
-        console.log("TYPE", rawTransactionType)
         const transactionBuffer: TransactionBufferSpec = TransactionBuffers.buffers.find(
             (buffer: TransactionBufferSpec) => {
                 return buffer.type === rawTransactionType
@@ -254,6 +260,66 @@ export default class extends BaseCommand {
         }
 
         return text
+    }
+
+    private readEmbeddedTransactions(rawTransactionType: string, bytes: string): string {
+        // Transaction byte size data
+        const transactionBuffer: TransactionBufferSpec = TransactionBuffers.buffers.find(
+            (buffer: TransactionBufferSpec) => {
+                return buffer.type === rawTransactionType
+            })
+
+        // read buffer config
+        const sizes = transactionBuffer.sizes
+        const keys = transactionBuffer.keys
+
+        if (sizes.length !== keys.length) {
+            throw new Error('Invalid transaction buffer configuration for transaction type ' + rawTransactionType)
+        }
+
+        // read aggregate "header"
+        const merkleRootHash = bytes.substr(0, sizes[0] as number)
+        const payloadSize = bytes.substr(sizes[0] as number, sizes[1] as number)
+        const embeddedByteSize = parseInt(swap16(payloadSize), 16)
+
+        // read embedded bytes
+        const embeddedOffset = (sizes[0] as number) + (sizes[1] as number) + (sizes[2] as number)
+        const embeddedBytes = bytes.substr(embeddedOffset, 2 * embeddedByteSize)
+
+        // iterate through embedded transactions
+        let transactions: string = ''
+        let cursor: number = 0
+        let counter: number = 0
+        while (cursor < 2 * embeddedByteSize) {
+            // read little endian embedded size
+            const transactionSize = embeddedBytes.substr(cursor, 8) // size on 4 bytes
+
+            // parse actual transaction size (+ swap endianness)
+            const cursorLength = parseInt(swap16(transactionSize), 16)
+            const paddingLength = cursorLength % 8 === 0 ? 0 : 8 - (cursorLength % 8)
+
+            // read embedded payload (SIZE is not counted in)
+            const transactionBytes = embeddedBytes.substr(cursor, 2 * cursorLength + 2 * paddingLength)
+
+            // read transaction type
+            const embeddedTypeOffset = 8 + 8 + 64 + 8 + 2 + 2
+            const rawEmbeddedType = transactionBytes.substr(embeddedTypeOffset, 4) // type on 2 bytes
+
+            console.log("CURSOR: ", cursor)
+            console.log("LENGTH: ", cursorLength)
+            console.log("RAW: ", transactionSize)
+            console.log("TYPE: ", rawEmbeddedType)
+            console.log("PADDING: ", paddingLength)
+
+            transactions += 'Embedded Transaction ' + (counter+1) + '): \n'
+            transactions += this.readTransactionBody(rawEmbeddedType, transactionBytes.substr(16))
+            transactions += '\n\n'
+
+            cursor += 2 * cursorLength + 2 * paddingLength
+            ++counter
+        }
+
+        return transactions
     }
 
 }
