@@ -127,7 +127,7 @@ export default class extends BaseCommand {
 
         // read file content and process rows
         const fileCSV = fs.readFileSync(filePath, 'utf8');
-        const rowsCSV = fileCSV.split('\n');
+        const rowsCSV = fileCSV.split('\r\n');
 
         if (skipHeader === true) {
             rowsCSV.shift()
@@ -136,7 +136,11 @@ export default class extends BaseCommand {
         while (rowsCSV.length) {
             const raw = rowsCSV.shift();
 
-            var columns: string[] = raw.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+            const columns: string[] = raw.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+
+            if (!columns) {
+                continue
+            }
 
             data.push({
                 reductionNumber: columns[0],
