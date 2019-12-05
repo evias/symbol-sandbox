@@ -89,8 +89,9 @@ export default class extends BaseCommand {
             'Does your CSV file include a header row? ');
         console.log('');
 
+        //XXX win32 line endings when using win32
         const inflationRows = this.readCSV(filePath, hasHeader);
-        let inflationConfig = '[inflation]\r\n\r\n';
+        let inflationConfig = '[inflation]\n\n';
         inflationRows.map((inflation: InflationRow) => {
             let startingAtBlock = parseInt(inflation.startingAtBlock)
             if (startingAtBlock === 0) startingAtBlock = 1
@@ -98,7 +99,7 @@ export default class extends BaseCommand {
             const blockReward = Math.floor(parseFloat(inflation.blockReward) * 1000000)
 
             // add config row
-            inflationConfig += 'starting-at-height-' + startingAtBlock + ' = ' + blockReward + '\r\n';
+            inflationConfig += 'starting-at-height-' + startingAtBlock + ' = ' + blockReward + '\n';
         })
 
         let outputPath;
