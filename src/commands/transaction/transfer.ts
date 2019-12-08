@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import chalk from 'chalk';
+import * as readlineSync from 'readline-sync';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     UInt64,
@@ -28,6 +29,7 @@ import {
     TransactionHttp,
     TransferTransaction,
     NamespaceId,
+    Account,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -63,6 +65,24 @@ export default class extends BaseCommand {
         let recipient: Address
         let amount: number
 
+        console.log('');
+        const inputSender = readlineSync.keyInYN(
+            'Do you want to enter a sender account private key? ');
+
+        let senderAccount: Account
+        if (inputSender === true) {
+            console.log('');
+            const senderPrivateKey = OptionsResolver(options,
+                'senderPrivateKey',
+                () => { return ''; },
+                'Enter your account private key: ');
+
+            senderAccount = Account.createFromPrivateKey(senderPrivateKey, this.networkType)
+        }
+        else {
+            senderAccount = this.getAccount("nemesis1")
+        }
+
         try {
             recipientAddress = OptionsResolver(options,
                 'address',
@@ -88,13 +108,14 @@ export default class extends BaseCommand {
         // add a block monitor
         this.monitorBlocks();
 
-        const address = this.getAddress("nemesis1").plain();
+        const address = senderAccount.address.plain();
         this.monitorAddress(address);
 
-        return await this.sendTransferTo(recipient, amount);
+        return await this.sendTransferTo(senderAccount, recipient, amount);
     }
 
     public async sendTransferTo(
+        senderAccount: Account,
         recipient: Address,
         amount: number
     ): Promise<Object>
@@ -111,7 +132,6 @@ export default class extends BaseCommand {
         // attach mosaicId !
         mosaics.push(new Mosaic(namespaceId, UInt64.fromUint(amount)));
 
-        const account   = this.getAccount("nemesis1");
         const message   = PlainMessage.create("Simple transfer of " + amount + " nem.xem");
         const deadline  = Deadline.create();
 
@@ -125,7 +145,8 @@ export default class extends BaseCommand {
             UInt64.fromUint(1000000), // 1 XEM fee
         );
 
-        const signedTransaction = account.sign(transferTransaction, this.generationHash);
+        const signedTransaction = senderAccount.sign(transferTransaction, this.generationHash);
+        console.log(chalk.yellow('Sender Address: ', senderAccount.address.plain()));
         console.log(chalk.yellow('Recipient Address: ', recipient.plain()));
         console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
 

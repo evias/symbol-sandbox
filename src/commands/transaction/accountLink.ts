@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import chalk from 'chalk';
+import * as readlineSync from 'readline-sync';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     NetworkType,
@@ -54,6 +55,11 @@ export default class extends BaseCommand {
     async execute(options: CommandOptions) {
         await this.setupConfig();
 
+        let action = OptionsResolver(options, 'linkAction', () => { return ''; },
+            'Enter 0 for UNLINK or 1 for LINK: ');
+        const linkAction: LinkAction = action == '0' ? LinkAction.Unlink : LinkAction.Link
+
+        console.log('');
         const privateKey = OptionsResolver(options,
             'privateKey',
             () => { return ''; },
@@ -61,29 +67,48 @@ export default class extends BaseCommand {
 
         const account: Account = Account.createFromPrivateKey(privateKey, this.networkType)
 
+        console.log('');
+        const inputRemote = readlineSync.keyInYN(
+            'Do you want to enter a delegated account private key? ');
+
+        let remoteAccount: Account
+        if (inputRemote === true) {
+            console.log('');
+            const delegatedPrivateKey = OptionsResolver(options,
+                'delegatedPrivateKey',
+                () => { return ''; },
+                'Enter your delegated account private key: ');
+
+            remoteAccount = Account.createFromPrivateKey(delegatedPrivateKey, this.networkType)
+        }
+        else {
+            remoteAccount =  Account.generateNewAccount(this.networkType)
+        }
+
         // add a block monitor
         this.monitorBlocks();
 
         const address = account.address
         this.monitorAddress(address.plain());
 
-        return await this.createAccountLink(account);
+        return await this.createAccountLink(account, remoteAccount, linkAction);
     }
 
-    public async createAccountLink(account: Account): Promise<Object>
+    public async createAccountLink(
+        account: Account,
+        delegatedAccount: Account,
+        linkAction: LinkAction,
+    ): Promise<Object>
     {
         const signer = account
 
-        // TEST: send account link transaction
-
-        const linkAction  = LinkAction.Link;
-        const remotePublicKey = Account.generateNewAccount(this.networkType).publicKey
-
-        console.log(chalk.yellow('Linking account ' + account.address.plain() + ' to remote public key: ' + remotePublicKey))
+        const action = linkAction === LinkAction.Link ? 'Linking' : 'Unlinking'
+        console.log(chalk.yellow(action + ' account ' + account.address.plain() + ' and remote public key: ' + delegatedAccount.publicKey))
+        console.log(chalk.yellow('Delegated private key: ' + delegatedAccount.privateKey))
 
         const linkTx = AccountLinkTransaction.create(
             Deadline.create(),
-            remotePublicKey,
+            delegatedAccount.publicKey,
             linkAction,
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee
