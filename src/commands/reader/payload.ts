@@ -298,21 +298,16 @@ export default class extends BaseCommand {
             const cursorLength = parseInt(swap16(transactionSize), 16)
             const paddingLength = cursorLength % 8 === 0 ? 0 : 8 - (cursorLength % 8)
 
-            // read embedded payload (SIZE is not counted in)
-            const transactionBytes = embeddedBytes.substr(cursor, 2 * cursorLength + 2 * paddingLength)
+            // read embedded payload (SIZE included ; PADDING ignored)
+            const transactionBytes = embeddedBytes.substr(cursor, 2 * cursorLength)
 
             // read transaction type
             const embeddedTypeOffset = 8 + 8 + 64 + 8 + 2 + 2
             const rawEmbeddedType = transactionBytes.substr(embeddedTypeOffset, 4) // type on 2 bytes
-
-            console.log("CURSOR: ", cursor)
-            console.log("LENGTH: ", cursorLength)
-            console.log("RAW: ", transactionSize)
-            console.log("TYPE: ", rawEmbeddedType)
-            console.log("PADDING: ", paddingLength)
+            const transactionData = transactionBytes.substr(embeddedTypeOffset + 4)
 
             transactions += 'Embedded Transaction ' + (counter+1) + '): \n'
-            transactions += this.readTransactionBody(rawEmbeddedType, transactionBytes.substr(16))
+            transactions += this.readTransactionBody(rawEmbeddedType, transactionData)
             transactions += '\n\n'
 
             cursor += 2 * cursorLength + 2 * paddingLength
