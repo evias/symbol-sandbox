@@ -47,7 +47,6 @@ export default class extends BaseCommand {
     @metadata
     async execute(options: CommandOptions) {
         let privateKey;
-        let addr;
         try {
             privateKey = OptionsResolver(options,
                 'privateKey',
@@ -58,18 +57,30 @@ export default class extends BaseCommand {
             throw new ExpectedError('Enter a valid input');
         }
 
-        let account = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
-        addr = Address.createFromPublicKey(account.publicKey, NetworkType.MIJIN_TEST);
+        let account_mijinTest  = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN_TEST);
+        let account_mijin      = Account.createFromPrivateKey(privateKey, NetworkType.MIJIN);
+        let account_publicTest = Account.createFromPrivateKey(privateKey, NetworkType.TEST_NET);
+        let account_public     = Account.createFromPrivateKey(privateKey, NetworkType.MAIN_NET);
 
         let text = '';
-        text += chalk.green('Input:\t') + chalk.bold(privateKey) + '\n';
-        text += '-'.repeat(20) + '\n\n';
-        text += 'Private Key:\t' + account.privateKey + '\n';
-        text += 'Public Key:\t' + account.publicKey + '\n';
-        text += 'Mijin:\t\t' + Address.createFromPublicKey(account.publicKey, NetworkType.MIJIN).plain() + '\n';
-        text += 'Mijin Test:\t' + Address.createFromPublicKey(account.publicKey, NetworkType.MIJIN_TEST).plain() + '\n';
-        text += 'Mainnet:\t' + Address.createFromPublicKey(account.publicKey, NetworkType.MAIN_NET).plain() + '\n';
-        text += 'Testnet:\t' + Address.createFromPublicKey(account.publicKey, NetworkType.TEST_NET).plain() + '\n';
+        text += chalk.green('Input:\t') + chalk.bold(privateKey) + '\n'
+        text += '-'.repeat(20) + '\n\n'
+        text += chalk.yellow('MIJIN_TEST\n')
+        text += 'Public Key:\t' + account_mijinTest.publicKey + '\n'
+        text += 'Address:\t' + account_mijinTest.address.plain() + '\n'
+        text += '\n'
+        text += chalk.yellow('MIJIN\n')
+        text += 'Public Key:\t' + account_mijin.publicKey + '\n'
+        text += 'Address:\t' + account_mijin.address.plain() + '\n'
+        text += '\n'
+        text += chalk.yellow('TEST_NET\n')
+        text += 'Public Key:\t' + account_publicTest.publicKey + '\n'
+        text += 'Address:\t' + account_publicTest.address.plain() + '\n'
+        text += '\n'
+        text += chalk.yellow('MAIN_NET\n')
+        text += 'Public Key:\t' + account_public.publicKey + '\n'
+        text += 'Address:\t' + account_public.address.plain() + '\n'
+        text += '\n'
 
         console.log(text);
     }
