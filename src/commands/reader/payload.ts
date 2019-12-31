@@ -71,7 +71,7 @@ export class TransactionBuffers {
         /* account_metadata */ {type: '4441', sizes: [64, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Value Size Delta', 'Value Size', 'Value']},
         /* mosaic_metadata */ {type: '4442', sizes: [64, 16, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Target Mosaic Id', 'Value Size Delta', 'Value Size', 'Value']},
         /* namespace_metadata */ {type: '4443', sizes: [64, 16, 16, 4, 4, -1], keys: ['Target public key', 'Metadata Key', 'Target Namespace Id', 'Value Size Delta', 'Value Size', 'Value']},
-        /* multisig_account_modification */ {type: '5541', sizes: [4, 4, 2, 2, 8, {sizeIdx: 2, multiplier: 32}, {sizeIdx: 3, multiplier: 32}], keys: ['Min Removal Delta', 'Min Approval Delta', 'Additions #', 'Deletions #', 'Body Reserved', 'Additions', 'Deletions']},
+        /* multisig_account_modification */ {type: '5541', sizes: [2, 2, 2, 2, 8, {sizeIdx: 2, multiplier: 64}, {sizeIdx: 3, multiplier: 64}], keys: ['Min Removal Delta', 'Min Approval Delta', 'Additions #', 'Deletions #', 'Body Reserved', 'Additions', 'Deletions']},
         /* lock_hash */ {type: '4841', sizes: [32, 16, 64], keys: ['Mosaic', 'Duration', 'Aggregate Hash']},
         /* secret_lock */ {type: '5241', sizes: [64, 32, 16, 2, 50], keys: ['Secret', 'Mosaic', 'Duration', 'Hash Algorithm', 'Lock Recipient']},
         /* secret_proof */ {type: '5242', sizes: [64, 4, 2, 50, -1], keys: ['Secret', 'Proof Size', 'Hash Algorithm', 'Lock Recipient', 'Proof']},
