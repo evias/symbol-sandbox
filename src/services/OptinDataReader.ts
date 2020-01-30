@@ -403,7 +403,7 @@ export class OptinDataReader extends Service {
                 namespaceTxPayload,
                 transactionHash,
                 destination,
-                TransactionType.REGISTER_NAMESPACE,
+                TransactionType.NAMESPACE_REGISTRATION,
                 this.catapultReader.NETWORK_ID
             )
 

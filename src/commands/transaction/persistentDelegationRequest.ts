@@ -134,7 +134,6 @@ export default class extends BaseCommand {
             Deadline.create(),
             delegatedAccount.privateKey,
             recipientAccount.publicKey,
-            senderAccount.privateKey,
             this.networkType,
             UInt64.fromUint(1000000)
         )

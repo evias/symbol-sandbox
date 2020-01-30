@@ -145,7 +145,7 @@ export default class extends BaseCommand {
 
             return blockListener.open().then(() => {
                 return blockListener.newBlock().subscribe(async (block) => {
-                    const txes = await blockHttp.getBlockTransactions('' + block.height.compact()).toPromise();
+                    const txes = await blockHttp.getBlockTransactions(block.height).toPromise();
                     const hasFirst = txes.find((tx: Transaction) => tx.transactionInfo.hash === firstTxHash) !== undefined;
 
                     if (!hasFirst) {

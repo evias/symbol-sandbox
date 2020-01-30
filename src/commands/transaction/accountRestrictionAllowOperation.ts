@@ -67,20 +67,20 @@ export default class extends BaseCommand {
         const account = this.getAccount("tester4");
 
         // first time "Transaction Type filter" must allow the 
-        // `ACCOUNT_RESTRICTION_OPERATION` transaction type
+        // `ACCOUNT_OPERATION_RESTRICTION` transaction type
         // further filters could add different transaction types to
         // the list, but the first time must always be this type.
 
         const entityTypePropertyFilter = AccountRestrictionModification.createForOperation(
             AccountRestrictionModificationAction.Add,
-            TransactionType.ACCOUNT_RESTRICTION_OPERATION
+            TransactionType.ACCOUNT_OPERATION_RESTRICTION
         );
 
-        // allow transaction type `ACCOUNT_RESTRICTION_OPERATION` for tester3
+        // allow transaction type `ACCOUNT_OPERATION_RESTRICTION` for tester3
         const entityTypeModification = AccountRestrictionTransaction.createOperationRestrictionModificationTransaction(
             Deadline.create(), 
             AccountRestrictionFlags.AllowOutgoingTransactionType, 
-            [TransactionType.ACCOUNT_RESTRICTION_OPERATION],
+            [TransactionType.ACCOUNT_OPERATION_RESTRICTION],
             [],
             this.networkType,
             UInt64.fromUint(1000000), // 1 XEM fee

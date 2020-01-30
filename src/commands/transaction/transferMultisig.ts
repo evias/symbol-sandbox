@@ -168,7 +168,7 @@ export default class extends BaseCommand {
             // This step should only happen after the lock funds got confirmed.
             return blockListener.open().then(() => {
                 return blockListener.newBlock().subscribe(async (block) => {
-                    const txes = await blockHttp.getBlockTransactions('' + block.height.compact()).toPromise();
+                    const txes = await blockHttp.getBlockTransactions(block.height).toPromise();
                     const hasLock = txes.find((tx: Transaction) => tx.transactionInfo.hash === lockFundsHash) !== undefined;
 
                     if (!hasLock) {
@@ -179,7 +179,7 @@ export default class extends BaseCommand {
                     console.log(chalk.green('Successfully announced lock funds transactions with hash: ' + lockFundsHash));
                     this.monitorAddress(multisigAcct.address.plain());
 
-                    blockListener.terminate();
+                    blockListener.close();
                     transactionHttp.announceAggregateBonded(signedMultisigTx).subscribe(() => {
                         console.log('');
                         console.log('Announced aggregate bonded transaction with transfer transaction');

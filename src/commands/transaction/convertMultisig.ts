@@ -198,14 +198,14 @@ export default class extends BaseCommand {
         // This step should only happen after the lock funds got confirmed.
         return blockListener.open().then(() => {
             return blockListener.newBlock().subscribe(async (block) => {
-                const txes = await blockHttp.getBlockTransactions('' + block.height.compact()).toPromise();
+                const txes = await blockHttp.getBlockTransactions(block.height).toPromise();
                 const hasLock = txes.find((tx: Transaction) => tx.transactionInfo.hash === lockFundsHash) !== undefined;
 
                 if (!hasLock) {
                     return ;
                 }
 
-                blockListener.terminate();
+                blockListener.close();
                 transactionHttp.announceAggregateBonded(signedAggregateTx).subscribe(() => {
                     console.log('Announced aggregate bonded transaction with multisig account modification');
                     console.log('Hash:   ', signedAggregateTx.hash);

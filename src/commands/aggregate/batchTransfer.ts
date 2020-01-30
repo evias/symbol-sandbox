@@ -34,7 +34,6 @@ import {
     Transaction,
     EmptyMessage,
     AggregateTransaction,
-    InnerTransaction,
 } from 'nem2-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -238,7 +237,7 @@ export default class extends BaseCommand {
         recipientAddress: Address,
         mosaicAmount: UInt64,
         mosaicIdentifier: MosaicId|NamespaceId
-    ): InnerTransaction
+    ): Transaction
     {
         const transferTx = TransferTransaction.create(
             Deadline.create(),
