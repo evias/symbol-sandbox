@@ -97,7 +97,7 @@ export default class extends BaseCommand {
             amount = parseInt(OptionsResolver(options,
                 'amount',
                 () => { return ''; },
-                'Enter an absolute amount of nem.xem: '))
+                'Enter an absolute amount of ' + this.networkConfig.currencyMosaic + ': '))
             if (isNaN(amount) || amount < 0) {
                 amount = 100000000 // 100 nem.xem
             }
@@ -132,7 +132,7 @@ export default class extends BaseCommand {
         // attach mosaicId !
         mosaics.push(new Mosaic(namespaceId, UInt64.fromUint(amount)));
 
-        const message   = PlainMessage.create("Simple transfer of " + amount + " nem.xem");
+        const message   = PlainMessage.create("Simple transfer of " + amount + " " + this.networkConfig.currencyMosaic);
         const deadline  = Deadline.create();
 
         // prepare SDK transaction and sign it
