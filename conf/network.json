@@ -1,6 +1,6 @@
 {
-    "endpointUrl": "http://api-01.us-west-1.nemtech.network:3000",
-    "generationHash": "988C4CDCE4D188013C13DE7914C7FD4D626169EF256722F61C52EFBE06BD5A2C",
-    "currencyMosaic": "nem.xem",
-    "harvestMosaic": "nem.xem"
+    "endpointUrl": "http://api-xym-harvest-3-01.eu-west-1.nemtech.network:3000",
+    "generationHash": "45870419226A7E51D61D94AD728231EDC6C9B3086EF9255A8421A4F26870456A",
+    "currencyMosaic": "symbol.xym",
+    "harvestMosaic": "symbol.xym"
 }
