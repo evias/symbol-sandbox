@@ -35,7 +35,7 @@ import {
     ExtendedKey,
     MnemonicPassPhrase,
     Wallet,
-} from 'nem2-hd-wallets';
+} from 'symbol-hd-wallets';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';

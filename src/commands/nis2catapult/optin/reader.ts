@@ -26,7 +26,7 @@ import {
 } from '../../../migration-command';
 import { OptinDataReader, OptinRequest } from '../../../services/OptinDataReader';
 import { OptionsResolver } from '../../../options-resolver';
-import { Address } from 'nem2-sdk';
+import { Address } from 'symbol-sdk';
 
 export class CommandOptions extends MigrationOptions {
     @option({

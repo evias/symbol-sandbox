@@ -1,11 +1,11 @@
 <p align="center"><img src="https://nem.io/wp-content/themes/nem/img/logo-nem.svg" width="400"></p>
 
 <p align="center">
-<a href="https://travis-ci.org/evias/nem2-sandbox"><img src="https://travis-ci.org/evias/nem2-sandbox.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/evias/nem2-sandbox"><img src="https://poser.pugx.org/evias/nem2-sandbox/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/evias/nem2-sandbox"><img src="https://poser.pugx.org/evias/nem2-sandbox/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/evias/nem2-sandbox"><img src="https://poser.pugx.org/evias/nem2-sandbox/v/unstable" alt="Latest Unstable Version"></a>
-<a href="https://packagist.org/packages/evias/nem2-sandbox"><img src="https://poser.pugx.org/evias/nem2-sandbox/license.svg" alt="License"></a>
+<a href="https://travis-ci.org/evias/symbol-sandbox"><img src="https://travis-ci.org/evias/symbol-sandbox.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/evias/symbol-sandbox"><img src="https://poser.pugx.org/evias/symbol-sandbox/d/total.svg" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/evias/symbol-sandbox"><img src="https://poser.pugx.org/evias/symbol-sandbox/v/stable.svg" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/evias/symbol-sandbox"><img src="https://poser.pugx.org/evias/symbol-sandbox/v/unstable" alt="Latest Unstable Version"></a>
+<a href="https://packagist.org/packages/evias/symbol-sandbox"><img src="https://poser.pugx.org/evias/symbol-sandbox/license.svg" alt="License"></a>
 </p>
 
 This package aims to provide with a command line interface helping developers to communicate with the NEM2 (Catapult) blockchain.
@@ -19,7 +19,7 @@ Package licensed under [Apache v2.0](LICENSE) License.
 ## Protocol Compatibility
 
 - [catapult-server@0.9.0.1](https://github.com/nemtech/catapult-server/releases/tag/v0.9.0.1)
-- [Fushicho2 Client Diff](https://github.com/evias/nem2-sandbox/compare/v0.8.4..v0.9.2)
+- [Fushicho2 Client Diff](https://github.com/evias/symbol-sandbox/compare/v0.8.4..v0.9.2)
 
 ## Donations / Pot de vin
 
@@ -37,13 +37,13 @@ Donations can be made with cryptocurrencies and will be used for running the pro
 1. Clone the Project
 
 ```
-git clone https://github.com/evias/nem2-sandbox.git`
+git clone https://github.com/evias/symbol-sandbox.git`
 ```
 
 2. Install the required dependencies.
 
 ```
-cd nem2-sandbox
+cd symbol-sandbox
 npm i
 ```
 
@@ -78,27 +78,27 @@ npm run build
 Convert UInt64 array notation:
 
 ```bash
-$ ./nem2-sandbox convert uint64 -i "[1, 1]"
+$ ./symbol-sandbox convert uint64 -i "[1, 1]"
 ```
 
 Convert Public Key to address notation:
 
 ```bash
-$ ./nem2-sandbox convert address
+$ ./symbol-sandbox convert address
 Enter a public key: 33F0E2685732AE9E202F92B2B93A525BF77C4C14BBA22D088926BA8A7FD0BE13
 ```
 
 Transaction broadcaster examples:
 
 ```bash
-$ ./nem2-sandbox transaction transfer
-$ ./nem2-sandbox transaction hashlock
-$ ./nem2-sandbox transaction aggregate
-$ ./nem2-sandbox transaction mosaicDefinition
-$ ./nem2-sandbox transaction mosaicSupply
-$ ./nem2-sandbox transaction registerNamespace -n namespace
-$ ./nem2-sandbox transaction mosaicAlias
-$ ./nem2-sandbox transaction addressAlias
+$ ./symbol-sandbox transaction transfer
+$ ./symbol-sandbox transaction hashlock
+$ ./symbol-sandbox transaction aggregate
+$ ./symbol-sandbox transaction mosaicDefinition
+$ ./symbol-sandbox transaction mosaicSupply
+$ ./symbol-sandbox transaction registerNamespace -n namespace
+$ ./symbol-sandbox transaction mosaicAlias
+$ ./symbol-sandbox transaction addressAlias
 ```
 
 ## Aggregate Transaction Scenarios
@@ -111,7 +111,7 @@ $ ./nem2-sandbox transaction addressAlias
 - Create a namespace alias for the created mosaic (MosaicAlias)
 
 ```bash
-$ ./nem2-sandbox aggregate mosaicConfiguration -n evias.test.name -d 0 -s 1 -t 1 -i 1000
+$ ./symbol-sandbox aggregate mosaicConfiguration -n evias.test.name -d 0 -s 1 -t 1 -i 1000
 ```
 
 2) Send **batch transfers** from CSV input
@@ -122,18 +122,18 @@ $ ./nem2-sandbox aggregate mosaicConfiguration -n evias.test.name -d 0 -s 1 -t 1
 
 ```bash
 $ export CSV_FILE=`pwd`/files/test.csv
-$ ./nem2-sandbox aggregate batchTransfer -f ${CSV_FILE}
+$ ./symbol-sandbox aggregate batchTransfer -f ${CSV_FILE}
 ```
 
 3) Create *multiple levels* of **namespaces**
 
 ```bash
-$ ./nem2-sandbox aggregate multiLevelNamespace evias.levels.tests
-$ ./nem2-sandbox aggregate multiLevelNamespace gregory.saive.handshakes
+$ ./symbol-sandbox aggregate multiLevelNamespace evias.levels.tests
+$ ./symbol-sandbox aggregate multiLevelNamespace gregory.saive.handshakes
 ```
 
 ## License
 
 This software is released under the [Apache v2.0](LICENSE) License.
 
-© 2019 Grégory Saive <greg@evias.be> for NEM, All rights reserved.
+© 2019-2020 Grégory Saive <greg@evias.be> for NEM, All rights reserved.
