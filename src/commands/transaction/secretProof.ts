@@ -25,7 +25,7 @@ import {
     HashType,
     Convert as convert,
     UInt64,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 import { sha3_256 } from 'js-sha3';
 

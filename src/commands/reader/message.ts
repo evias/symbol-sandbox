@@ -19,7 +19,7 @@ import chalk from 'chalk';
 import {command, ExpectedError, metadata, option} from 'clime';
 import {
     Message,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 import { decode } from 'utf8'
 
 import {OptionsResolver} from '../../options-resolver';

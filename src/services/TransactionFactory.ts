@@ -26,7 +26,7 @@ import {
     MosaicSupplyChangeTransaction,
     MosaicSupplyChangeAction,
     PublicAccount,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 // internal dependencies
 import { CATDataReader } from './CATDataReader';

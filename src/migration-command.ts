@@ -20,7 +20,7 @@ import { ExpectedError, option, Options } from 'clime';
 import { 
     Account,
     NetworkType,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 // internal dependencies
 import { OptionsResolver } from './options-resolver';

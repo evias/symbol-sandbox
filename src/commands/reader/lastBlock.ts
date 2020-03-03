@@ -21,7 +21,7 @@ import {
     UInt64,
     ChainHttp,
     BlockchainScore
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 import {from as observableFrom, Observable, merge} from 'rxjs';
 import {combineLatest, catchError} from 'rxjs/operators';

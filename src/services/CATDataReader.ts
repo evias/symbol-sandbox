@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import axios from 'axios';
-import { NetworkType } from 'nem2-sdk';
+import { NetworkType } from 'symbol-sdk';
 
 // internal dependencies
 import { Service } from './Service';

@@ -23,7 +23,7 @@ import {
     NetworkType,
     NamespaceHttp,
     NamespaceId
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 import {from as observableFrom, Observable, merge} from 'rxjs';
 import {combineLatest, catchError} from 'rxjs/operators';

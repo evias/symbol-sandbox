@@ -30,10 +30,9 @@ import {
     AccountType,
     PublicAccount,
     RawAddress,
-    SignSchema,
     Convert,
     SHA3Hasher as sha3Hasher,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 const { sha3_256 } = require('js-sha3');
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
@@ -85,7 +84,7 @@ const isValidAddressDecoded = (decoded): boolean => {
 const prepareUnclampedPublicKey = (privateKey): string => {
     const sk = Convert.hexToUint8(privateKey);
     const d = new Uint8Array(64);
-    sha3Hasher.func(d, sk, 64, SignSchema.SHA3);
+    sha3Hasher.func(d, sk, 64);
     // DO NOT "clamp" clamp(d);
     return Convert.uint8ToHex(d);
 }

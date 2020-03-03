@@ -30,7 +30,7 @@ import {
     TransferTransaction,
     NamespaceId,
     Account,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 import {
     ExtendedKey,
     MnemonicPassPhrase,

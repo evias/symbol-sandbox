@@ -20,7 +20,7 @@ import {
     NamespaceId,
     UInt64,
     RawUInt64 as uint64_t,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 /**
  * Generic command line argument reader.

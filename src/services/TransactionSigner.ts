@@ -20,7 +20,7 @@ import {
     Deadline,
     NetworkType,
     Transaction,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 import { TransactionURI } from 'nem2-uri-scheme';
 
 // internal dependencies

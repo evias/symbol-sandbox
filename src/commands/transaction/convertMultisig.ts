@@ -37,7 +37,7 @@ import {
     BlockHttp,
     Transaction,
     BlockInfo,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 import {from as observableFrom, Observable} from 'rxjs';
 import {filter, map, mergeMap, first} from 'rxjs/operators';
 

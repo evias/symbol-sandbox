@@ -25,7 +25,7 @@ import {
     TransactionType,
     Convert,
     Transaction,
-} from 'nem2-sdk'
+} from 'symbol-sdk'
 
 // internal dependencies
 import { Service } from './Service';

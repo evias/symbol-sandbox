@@ -35,8 +35,7 @@ import {
     HashType,
     SHA3Hasher,
     Convert,
-    SignSchema,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
@@ -266,7 +265,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.harvest';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -296,7 +295,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.currency';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -347,7 +346,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.currency';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);
@@ -377,7 +376,7 @@ export default class extends BaseCommand {
         const plain = '10 cat.harvest';
         let proof = Convert.utf8ToHex(plain);
         let secret: Uint8Array = new Uint8Array(32);
-        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32, SignSchema.SHA3);
+        SHA3Hasher.func(secret, Convert.hexToUint8(proof), 32);
 
         // hexify
         const secretHex = Convert.uint8ToHex(secret);

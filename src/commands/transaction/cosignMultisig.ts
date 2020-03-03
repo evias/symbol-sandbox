@@ -25,7 +25,7 @@ import {
     AggregateTransaction,
     CosignatureSignedTransaction,
     CosignatureTransaction,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';
@@ -91,12 +91,19 @@ export default class extends BaseCommand {
 
             // read aggregate-bonded transactions
             let unsignedTxes = await accountHttp
-                                        .getAccountPartialTransactions(multisig.publicAccount.address)
+                                        .getAccountPartialTransactions(cosignatory.address)
                                         .toPromise();
 
             if (! unsignedTxes.length) {
-                console.log("No transactions found to co-sign.");
-                return reject(false);
+                // try fetch by multisig account
+                unsignedTxes = await accountHttp
+                                        .getAccountPartialTransactions(multisig.address)
+                                        .toPromise();
+
+                if (! unsignedTxes.length) {
+                    console.log("No transactions found to co-sign.");
+                    return reject(false);
+                }
             }
 
             // filter by unsigned

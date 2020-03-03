@@ -28,7 +28,7 @@ import {
     Convert as convert,
     Mosaic,
     NamespaceId,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 import { sha3_256 } from 'js-sha3';
 

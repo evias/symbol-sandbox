@@ -22,7 +22,7 @@ import {
     MosaicHttp,
     NamespaceHttp,
     NamespaceId
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
 import {BaseCommand, BaseOptions} from '../../base-command';

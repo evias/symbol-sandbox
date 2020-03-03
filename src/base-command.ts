@@ -25,7 +25,7 @@ import {
     NetworkType,
     UInt64,
     NetworkHttp,
-} from 'nem2-sdk';
+} from 'symbol-sdk';
 
 const fs = require('fs')
 
