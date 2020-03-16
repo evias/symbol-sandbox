@@ -1,7 +1,7 @@
 {
     "name": "symbol-sandbox",
     "preferGlobal": true,
-    "version": "0.10.0",
+    "version": "0.10.1",
     "author": "Grégory Saive <greg@evias.be>",
     "description": "a simple sandbox to work with symbol-sdk",
     "license": "ApacheV2",
