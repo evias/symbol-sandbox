@@ -50,7 +50,8 @@
         "ts-node": "^5.0.1",
         "tslint": "^5.20.1",
         "typescript": "^2.9.2",
-        "typescript-require": "^0.2.10"
+        "typescript-require": "^0.2.10",
+        "minimist": ">=1.2.2"
     },
     "main": "index.js",
     "bin": {
