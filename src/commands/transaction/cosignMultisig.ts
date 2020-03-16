@@ -21,10 +21,13 @@ import {
     Account,
     NetworkType,
     AccountHttp,
+    MultisigHttp,
     TransactionHttp,
     AggregateTransaction,
     CosignatureSignedTransaction,
     CosignatureTransaction,
+    MultisigAccountInfo,
+    PublicAccount,
 } from 'symbol-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -74,6 +77,7 @@ export default class extends BaseCommand {
     ): Promise<Object>
     {
         const accountHttp = new AccountHttp(this.endpointUrl);
+        const multisigHttp = new MultisigHttp(this.endpointUrl);
         const transactionHttp = new TransactionHttp(this.endpointUrl);
 
         // create a cosignatory helper function to co-sign any aggregte
@@ -89,39 +93,57 @@ export default class extends BaseCommand {
 
             const multisig = this.getAccount("multisig1");
 
+            console.log("fetching partial transactions for cosignatory: " + cosignatory.address.plain() + "...")
+
             // read aggregate-bonded transactions
             let unsignedTxes = await accountHttp
                                         .getAccountPartialTransactions(cosignatory.address)
                                         .toPromise();
 
             if (! unsignedTxes.length) {
-                // try fetch by multisig account
-                unsignedTxes = await accountHttp
-                                        .getAccountPartialTransactions(multisig.address)
-                                        .toPromise();
+                console.error('None found.')
+                console.log()
 
-                if (! unsignedTxes.length) {
-                    console.log("No transactions found to co-sign.");
+                // try fetch by multisig account
+                let multisigInfo: MultisigAccountInfo
+                try {
+                    multisigInfo = await multisigHttp.getMultisigAccountInfo(cosignatory.address).toPromise()
+
+                    if (!multisigInfo.multisigAccounts.length) {
+                        console.error("This account is not part of a multi-signature account.");
+                        return reject(false);
+                    }
+                }
+                catch (e) { 
+                    console.error("Error with multisig: ", e);
                     return reject(false);
                 }
+
+                for (let i = 0, m = multisigInfo.multisigAccounts.length; i < m; i++) { 
+                    const multisig = multisigInfo.multisigAccounts[i]
+
+                    console.log("fetching partial transactions for multisig: " + multisig.address.plain() + "...")
+                    accountHttp.getAccountPartialTransactions(multisig.address).subscribe(
+                        (transactions: AggregateTransaction[]) => {
+                            return observableFrom(transactions).pipe(
+                                filter((_) => !_.signedByAccount(cosignatory.publicAccount)),
+                                map(transaction => cosignHelper(transaction, cosignatory)),
+                                mergeMap(signedSignature => {
+                                    console.log('Signed cosignature transaction');
+                                    console.log('Parent Hash: ', signedSignature.parentHash);
+                                    console.log('Signer:      ', signedSignature.signerPublicKey, '\n');
+                
+                                    // announce cosignature
+                                    return transactionHttp.announceAggregateBondedCosignature(signedSignature);
+                                })
+                            ).subscribe((announcedTransaction) => {
+                                console.log(chalk.green('Announced cosignature transaction'), '\n');
+                                return resolve(announcedTransaction);
+                            }, err => console.error(err));
+                        }
+                    , (err) => reject(err))
+                }
             }
-
-            // filter by unsigned
-            return observableFrom(unsignedTxes).pipe(
-                filter((_) => !_.signedByAccount(cosignatory.publicAccount)),
-                map(transaction => cosignHelper(transaction, cosignatory)),
-                mergeMap(signedSignature => {
-                    console.log('Signed cosignature transaction');
-                    console.log('Parent Hash: ', signedSignature.parentHash);
-                    console.log('Signer:      ', signedSignature.signerPublicKey, '\n');
-
-                    // announce cosignature
-                    return transactionHttp.announceAggregateBondedCosignature(signedSignature);
-                })
-            ).subscribe((announcedTransaction) => {
-                console.log(chalk.green('Announced cosignature transaction'), '\n');
-                return resolve(announcedTransaction);
-            }, err => console.error(err));
         });
     }
 
