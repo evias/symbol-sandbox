@@ -159,14 +159,13 @@ export default class extends BaseCommand {
         let derivationPath = OptionsResolver(options,
             'derivationPath',
             () => { return ''; },
-            'Enter a derivation path (default: m/44\'/43\'/0\'/0\'/0\'): ')
+            'Enter a derivation path (default: m/44\'/4343\'/0\'/0\'/0\'): ')
 
         if (! derivationPath.length) {
-            derivationPath = 'm/44\'/43\'/0\'/0\'/0\''
+            derivationPath = 'm/44\'/4343\'/0\'/0\'/0\''
         }
 
-        // create extended key from mnemonic pass phrase
-        const extKey = ExtendedKey.createFromSeed(this.mnemonicPassPhrase.toEntropy())
+        const extKey = ExtendedKey.createFromSeed(this.mnemonicPassPhrase.toSeed().toString('hex'))
         const wallet = new Wallet(extKey)
         const account = wallet.getChildAccount(derivationPath, networkType)
         return Account.createFromPrivateKey(account.privateKey, networkType)
