@@ -22,7 +22,7 @@ import {
     Deadline,
     TransactionHttp,
     SecretProofTransaction,
-    HashType,
+    LockHashAlgorithm,
     Convert as convert,
     UInt64,
 } from 'symbol-sdk';
@@ -97,7 +97,7 @@ export default class extends BaseCommand {
 
         const secretProofTx = SecretProofTransaction.create(
             Deadline.create(),
-            HashType.Op_Sha3_256,
+            LockHashAlgorithm.Op_Sha3_256,
             secret,
             prover.address,
             proof,

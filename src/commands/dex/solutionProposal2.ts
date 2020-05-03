@@ -32,7 +32,7 @@ import {
     AggregateTransaction,
     SecretLockTransaction,
     SecretProofTransaction,
-    HashType,
+    LockHashAlgorithm,
     SHA3Hasher,
     Convert,
 } from 'symbol-sdk';
@@ -278,7 +278,7 @@ export default class extends BaseCommand {
             Deadline.create(),
             new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(10)),
             UInt64.fromUint(10), // 10 blocks
-            HashType.Op_Sha3_256,
+            LockHashAlgorithm.Op_Sha3_256,
             secretHex,
             orderBookAddress,
             this.networkType
@@ -307,7 +307,7 @@ export default class extends BaseCommand {
 
         const proofTx = SecretProofTransaction.create(
             Deadline.create(),
-            HashType.Op_Sha3_256,
+            LockHashAlgorithm.Op_Sha3_256,
             secretHex,
             orderBookAddress,
             proof,
@@ -359,7 +359,7 @@ export default class extends BaseCommand {
             Deadline.create(),
             new Mosaic(new NamespaceId('cat.harvest'), UInt64.fromUint(10)),
             UInt64.fromUint(10), // 10 blocks
-            HashType.Op_Sha3_256,
+            LockHashAlgorithm.Op_Sha3_256,
             secretHex,
             orderBookAddress,
             this.networkType
@@ -388,7 +388,7 @@ export default class extends BaseCommand {
 
         const proofTx = SecretProofTransaction.create(
             Deadline.create(),
-            HashType.Op_Sha3_256,
+            LockHashAlgorithm.Op_Sha3_256,
             secretHex,
             orderBookAddress,
             proof,

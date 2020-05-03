@@ -144,6 +144,25 @@ export default class extends BaseCommand {
                     , (err) => reject(err))
                 }
             }
+            else {
+                unsignedTxes.map((transaction: AggregateTransaction) => {
+                    return observableFrom([transaction]).pipe(
+                        filter((_) => !_.signedByAccount(cosignatory.publicAccount)),
+                        map(transaction => cosignHelper(transaction, cosignatory)),
+                        mergeMap(signedSignature => {
+                            console.log('Signed cosignature transaction');
+                            console.log('Parent Hash: ', signedSignature.parentHash);
+                            console.log('Signer:      ', signedSignature.signerPublicKey, '\n');
+        
+                            // announce cosignature
+                            return transactionHttp.announceAggregateBondedCosignature(signedSignature);
+                        })
+                    ).subscribe((announcedTransaction) => {
+                        console.log(chalk.green('Announced cosignature transaction'), '\n');
+                        return resolve(announcedTransaction);
+                    }, err => console.error(err));
+                })
+            }
         });
     }
 

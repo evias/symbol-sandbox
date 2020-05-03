@@ -396,7 +396,6 @@ export class OptinDataReader extends Service {
             const transactionHash = Transaction.createTransactionHash(
                 namespaceTxPayload,
                 generationHashBytes,
-                this.catapultReader.NETWORK_ID
             )
 
             let signedNamespaceTransaction = new SignedTransaction(
