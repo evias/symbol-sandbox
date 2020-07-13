@@ -91,7 +91,7 @@ export default class extends BaseCommand {
 
         // STEP 1: MosaicDefinition
         const nonce = MosaicNonce.createRandom();
-        const mosId = MosaicId.createFromNonce(nonce, account.publicAccount);
+        const mosId = MosaicId.createFromNonce(nonce, account.publicAccount.address);
 
         const createTx = MosaicDefinitionTransaction.create(
             Deadline.create(),

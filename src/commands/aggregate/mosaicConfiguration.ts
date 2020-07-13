@@ -340,7 +340,7 @@ export default class extends BaseCommand {
     {
         // create nonce and mosaicId
         const nonce = MosaicNonce.createRandom();
-        const mosId = MosaicId.createFromNonce(nonce, publicAccount);
+        const mosId = MosaicId.createFromNonce(nonce, publicAccount.address);
         const props = {
             supplyMutable: supplyMutable,
             transferable: transferable,

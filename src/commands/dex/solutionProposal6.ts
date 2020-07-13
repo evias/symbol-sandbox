@@ -324,7 +324,7 @@ export default class extends BaseCommand {
             Deadline.create(),
             1, // 1of1
             1, // 1of1
-            [takerAccount],
+            [takerAccount.address],
             [],
             this.networkType
         );

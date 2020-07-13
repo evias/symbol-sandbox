@@ -23,7 +23,7 @@ import {
     Deadline,
     TransactionHttp,
     AccountRestrictionModificationAction,
-    AccountRestrictionFlags,
+    MosaicRestrictionFlag,
     AccountRestrictionModification,
     AccountRestrictionTransaction,
     UInt64,
@@ -75,7 +75,7 @@ export default class extends BaseCommand {
         // Add `mosaicId` property filter and *allow* mosaic for tester1
         const addressModification = AccountRestrictionTransaction.createMosaicRestrictionModificationTransaction(
             Deadline.create(), 
-            AccountRestrictionFlags.AllowMosaic, 
+            MosaicRestrictionFlag.AllowMosaic, 
             [new MosaicId(mosaicId)],
             [],
             this.networkType,

@@ -28,6 +28,9 @@ import {
     CosignatureTransaction,
     MultisigAccountInfo,
     PublicAccount,
+    TransactionGroup,
+    Page,
+    Transaction,
 } from 'symbol-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -76,9 +79,9 @@ export default class extends BaseCommand {
         cosignatory: Account
     ): Promise<Object>
     {
-        const accountHttp = new AccountHttp(this.endpointUrl);
-        const multisigHttp = new MultisigHttp(this.endpointUrl);
-        const transactionHttp = new TransactionHttp(this.endpointUrl);
+        const accountHttp = this.repositoryFactory.createAccountRepository()
+        const multisigHttp = this.repositoryFactory.createMultisigRepository()
+        const transactionHttp = this.repositoryFactory.createTransactionRepository()
 
         // create a cosignatory helper function to co-sign any aggregte
         const cosignHelper = (
@@ -88,7 +91,7 @@ export default class extends BaseCommand {
             const cosignatureTransaction = CosignatureTransaction.create(transaction);
             return account.signCosignatureTransaction(cosignatureTransaction);
         };
-        
+
         return new Promise(async (resolve, reject) => {
 
             const multisig = this.getAccount("multisig1");
@@ -96,11 +99,11 @@ export default class extends BaseCommand {
             console.log("fetching partial transactions for cosignatory: " + cosignatory.address.plain() + "...")
 
             // read aggregate-bonded transactions
-            let unsignedTxes = await accountHttp
-                                        .getAccountPartialTransactions(cosignatory.address)
+            let unsignedTxes = await transactionHttp
+                                        .search({group: TransactionGroup.Partial, address: cosignatory.address})
                                         .toPromise();
 
-            if (! unsignedTxes.length) {
+            if (! unsignedTxes.totalEntries) {
                 console.error('None found.')
                 console.log()
 
@@ -109,7 +112,7 @@ export default class extends BaseCommand {
                 try {
                     multisigInfo = await multisigHttp.getMultisigAccountInfo(cosignatory.address).toPromise()
 
-                    if (!multisigInfo.multisigAccounts.length) {
+                    if (!multisigInfo.multisigAddresses.length) {
                         console.error("This account is not part of a multi-signature account.");
                         return reject(false);
                     }
@@ -119,15 +122,18 @@ export default class extends BaseCommand {
                     return reject(false);
                 }
 
-                for (let i = 0, m = multisigInfo.multisigAccounts.length; i < m; i++) { 
-                    const multisig = multisigInfo.multisigAccounts[i]
+                for (let i = 0, m = multisigInfo.multisigAddresses.length; i < m; i++) { 
+                    const multisig = multisigInfo.multisigAddresses[i]
 
-                    console.log("fetching partial transactions for multisig: " + multisig.address.plain() + "...")
-                    accountHttp.getAccountPartialTransactions(multisig.address).subscribe(
-                        (transactions: AggregateTransaction[]) => {
-                            return observableFrom(transactions).pipe(
-                                filter((_) => !_.signedByAccount(cosignatory.publicAccount)),
-                                map(transaction => cosignHelper(transaction, cosignatory)),
+                    console.log("fetching partial transactions for multisig: " + multisig.plain() + "...")
+                    transactionHttp.search({
+                        group: TransactionGroup.Partial,
+                        address: multisig
+                    }).subscribe(
+                        (transactions: Page<Transaction>) => {
+                            return observableFrom(transactions.data).pipe(
+                                filter((_) => !(_ as AggregateTransaction).signedByAccount(cosignatory.publicAccount)),
+                                map(transaction => cosignHelper(transaction as AggregateTransaction, cosignatory)),
                                 mergeMap(signedSignature => {
                                     console.log('Signed cosignature transaction');
                                     console.log('Parent Hash: ', signedSignature.parentHash);
@@ -145,7 +151,7 @@ export default class extends BaseCommand {
                 }
             }
             else {
-                unsignedTxes.map((transaction: AggregateTransaction) => {
+                unsignedTxes.data.map((transaction: AggregateTransaction) => {
                     return observableFrom([transaction]).pipe(
                         filter((_) => !_.signedByAccount(cosignatory.publicAccount)),
                         map(transaction => cosignHelper(transaction, cosignatory)),

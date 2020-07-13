@@ -23,7 +23,7 @@ import {
     Address,
     Deadline,
     TransactionHttp,
-    AccountLinkTransaction,
+    AccountKeyLinkTransaction,
     LinkAction,
     UInt64,
     Account,
@@ -98,7 +98,7 @@ export class CommandOptions extends BaseOptions {
 }
 
 @command({
-    description: 'Check for cow compatibility of AccountLinkTransaction',
+    description: 'Check for cow compatibility of AccountKeyLinkTransaction',
 })
 export default class extends BaseCommand {
 
@@ -138,7 +138,7 @@ export default class extends BaseCommand {
         let invalidRemotePub: string = Account.generateNewAccount(this.networkType).publicKey.substr(0, 63) + '0'
         console.log(chalk.yellow('Linking account ' + account.address.plain() + ' to *invalid* remote public key: ' + invalidRemotePub))
 
-        const linkTx = AccountLinkTransaction.create(
+        const linkTx = AccountKeyLinkTransaction.create(
             Deadline.create(),
             invalidRemotePub,
             linkAction,

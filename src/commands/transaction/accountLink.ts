@@ -24,7 +24,7 @@ import {
     Address,
     Deadline,
     TransactionHttp,
-    AccountLinkTransaction,
+    AccountKeyLinkTransaction,
     LinkAction,
     UInt64,
     Account,
@@ -43,7 +43,7 @@ export class CommandOptions extends BaseOptions {
 }
 
 @command({
-    description: 'Check for cow compatibility of AccountLinkTransaction',
+    description: 'Check for cow compatibility of AccountKeyLinkTransaction',
 })
 export default class extends BaseCommand {
 
@@ -106,7 +106,7 @@ export default class extends BaseCommand {
         console.log(chalk.yellow(action + ' account ' + account.address.plain() + ' and remote public key: ' + delegatedAccount.publicKey))
         console.log(chalk.yellow('Delegated private key: ' + delegatedAccount.privateKey))
 
-        const linkTx = AccountLinkTransaction.create(
+        const linkTx = AccountKeyLinkTransaction.create(
             Deadline.create(),
             delegatedAccount.publicKey,
             linkAction,

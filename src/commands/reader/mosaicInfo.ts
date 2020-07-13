@@ -98,10 +98,8 @@ export default class extends BaseCommand {
                 text += 'JSON: ' + JSON.stringify(mosaicInfo) + '\n\n';
                 text += chalk.yellow('MosaicId:       ') + mosaicInfo.id.toHex() + '\n';
                 text += chalk.yellow('Supply:         ') + mosaicInfo.supply.compact() + '\n';
-                text += chalk.yellow('Height:         ') + mosaicInfo.height.compact() + '\n';
-                text += chalk.yellow('Owner:   ') + '\n';
-                text += '    ' + chalk.yellow('Public Key: ') + mosaicInfo.owner.publicKey + '\n';
-                text += '    ' + chalk.yellow('Address:    ') + mosaicInfo.owner.address.plain() + '\n';
+                text += chalk.yellow('Height:         ') + mosaicInfo.startHeight.compact() + '\n';
+                text += chalk.yellow('Owner:   ') + mosaicInfo.ownerAddress.plain() + '\n';
                 text += chalk.yellow('Properties:   ') + '\n';
                 text += '    ' + chalk.yellow('Divisibility: ') + mosaicInfo.divisibility + '\n';
                 text += '    ' + chalk.yellow('Duration: ') + mosaicInfo.duration.compact() + '\n';

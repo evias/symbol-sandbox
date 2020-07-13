@@ -71,41 +71,18 @@ export default class extends BaseCommand {
         const address = this.getAddress("tester1");
         const account = this.getAccount("tester1");
 
-        let mosaics: Mosaic[] = [];
-        mosaics.push(new Mosaic(new NamespaceId(this.networkConfig.currencyMosaic), UInt64.fromUint(10)));
-
-        // TEST 3: send mosaic creation transaction
-        const fundsTx1 = TransferTransaction.create(
-            Deadline.create(),
-            recipient,
-            mosaics,
-            PlainMessage.create("Testing aggregate transfer"),
-            this.networkType,
-            UInt64.fromUint(1000000), // 1 XEM fee
-        );
-
-        const fundsTx2 = TransferTransaction.create(
-            Deadline.create(),
-            recipient,
-            mosaics,
-            PlainMessage.create("Testing aggregate transfer"),
-            this.networkType,
-            UInt64.fromUint(1000000), // 1 XEM fee
-        );
-
         const accountHttp = new AccountHttp(this.endpointUrl);
         return accountHttp.getAccountInfo(address).subscribe((accountInfo) => {
             const aggregateTx = AggregateTransaction.createComplete(
                 Deadline.create(),
-                [fundsTx1.toAggregate(accountInfo.publicAccount),
-                 fundsTx2.toAggregate(accountInfo.publicAccount)],
+                [],
                 this.networkType, [], UInt64.fromUint(1000000)); // 1 XEM fee
 
             const signedTransaction = account.sign(aggregateTx, this.generationHash);
             console.log(chalk.yellow('Announcing Transaction Payload: ', signedTransaction.payload))
 
-            const transactionHttp = new TransactionHttp(this.endpointUrl);
-            const listener = this.repositoryFactory.createListener();
+            const transactionHttp = new TransactionHttp(this.endpointUrl)
+            const listener = this.repositoryFactory.createListener()
 
             listener.open().then(() => {
                 transactionHttp.announce(signedTransaction).subscribe(() => {

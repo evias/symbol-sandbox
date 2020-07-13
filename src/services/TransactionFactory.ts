@@ -107,7 +107,7 @@ export class TransactionFactory extends Service {
 
             // create nonce and id
             const mosaicNonce = MosaicNonce.createRandom();
-            const mosaicId = MosaicId.createFromNonce(mosaicNonce, ownerPubAccount);
+            const mosaicId = MosaicId.createFromNonce(mosaicNonce, ownerPubAccount.address);
             const catLabel = this.catapultReader.formatMosaicName(fqn)
 
             catapultMosaicLabels[catLabel] = mosaicId

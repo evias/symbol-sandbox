@@ -23,7 +23,7 @@ import {
     Deadline,
     TransactionHttp,
     AccountRestrictionModificationAction,
-    AccountRestrictionFlags,
+    AddressRestrictionFlag,
     AccountRestrictionModification,
     AccountRestrictionTransaction,
     UInt64,
@@ -72,7 +72,7 @@ export default class extends BaseCommand {
         // tester1 blocks incoming transactions from tester4
         const addressModification = AccountRestrictionTransaction.createAddressRestrictionModificationTransaction(
             Deadline.create(), 
-            AccountRestrictionFlags.BlockIncomingAddress, 
+            AddressRestrictionFlag.BlockIncomingAddress, 
             [recipient],
             [],
             this.networkType,

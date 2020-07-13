@@ -23,7 +23,7 @@ import {
     Deadline,
     TransactionHttp,
     AccountRestrictionModificationAction,
-    AccountRestrictionFlags,
+    OperationRestrictionFlag,
     AccountRestrictionModification,
     AccountRestrictionTransaction,
     UInt64,
@@ -79,7 +79,7 @@ export default class extends BaseCommand {
         // allow transaction type `ACCOUNT_OPERATION_RESTRICTION` for tester3
         const entityTypeModification = AccountRestrictionTransaction.createOperationRestrictionModificationTransaction(
             Deadline.create(), 
-            AccountRestrictionFlags.AllowOutgoingTransactionType, 
+            OperationRestrictionFlag.AllowOutgoingTransactionType, 
             [TransactionType.ACCOUNT_OPERATION_RESTRICTION],
             [],
             this.networkType,

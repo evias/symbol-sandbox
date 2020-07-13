@@ -1,6 +1,6 @@
 {
-    "endpointUrl": "http://api-harvest-01.eu-central-1.symboldev.network:3000",
-    "generationHash": "44D2225B8932C9A96DCB13508CBCDFFA9A9663BFBA2354FEEC8FCFCB7E19846C",
+    "endpointUrl": "http://api-01.eu-central-1.096x.symboldev.network:3000",
+    "generationHash": "1DFB2FAA9E7F054168B0C5FCB84F4DEB62CC2B4D317D861F3168D161F54EA78B",
     "currencyMosaic": "symbol.xym",
     "harvestMosaic": "symbol.xym"
 }

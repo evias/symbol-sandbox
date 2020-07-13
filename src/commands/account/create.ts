@@ -105,7 +105,21 @@ export default class extends BaseCommand {
                     account = this.createMnemonicAccount(options, networkType, i === 0)
                 }
                 else {
-                    account = this.createPrivateKeyAccount(networkType)
+                    console.log('');
+                    const doPrivateInput = readlineSync.keyInYN(
+                        'Do you want to enter a private key for account ' + (i+1) + '? ');
+                    console.log('');
+
+                    if (doPrivateInput) {
+                        privateKey = OptionsResolver(options,
+                            'privateKey',
+                            () => { return ''; },
+                            'Enter a private key: ')
+                        account = Account.createFromPrivateKey(privateKey, networkType)
+                    }
+                    else {
+                        account = this.createPrivateKeyAccount(networkType)
+                    }
                 }
 
                 console.log('')

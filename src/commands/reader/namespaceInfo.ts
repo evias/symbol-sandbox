@@ -108,9 +108,7 @@ export default class extends BaseCommand {
                     text += chalk.yellow('Level ' + (i+1) + ':      ') + level.toHex() + '\n';
                 });
 
-                text += chalk.yellow('Owner:   ') + '\n';
-                text += '    ' + chalk.yellow('Public Key: ') + namespaceInfo.owner.publicKey + '\n';
-                text += '    ' + chalk.yellow('Address:    ') + namespaceInfo.owner.address.plain() + '\n';
+                text += chalk.yellow('Owner:   ') + namespaceInfo.ownerAddress.plain() + '\n';
 
                 if (namespaceInfo.alias.type === 0) {
                     text += chalk.yellow('Alias:         ') + chalk.red('None') + '\n';

@@ -25,6 +25,7 @@ import {
     NetworkType,
     UInt64,
     NetworkHttp,
+    RepositoryFactoryHttp,
 } from 'symbol-sdk';
 
 const fs = require('fs')
@@ -35,6 +36,7 @@ export abstract class BaseCommand extends Command {
     public endpointUrl: string = "http://localhost:3000";
     public generationHash: string = '';
 
+    public repositoryFactory: RepositoryFactoryHttp;
     public networkType: NetworkType;
     protected accounts = {};
 
@@ -52,11 +54,8 @@ export abstract class BaseCommand extends Command {
     }
 
     public async setupConfig() {
-        const networkHttp = new NetworkHttp(this.endpointUrl)
-        this.networkType = await networkHttp.getNetworkType().toPromise();
-
-        //XXX read generation hash from node
-        //XXX read currency mosaic from node
+        this.repositoryFactory = new RepositoryFactoryHttp(this.endpointUrl, {})
+        this.networkType = await this.repositoryFactory.getNetworkType().toPromise()
     }
 
     private readAccountsConfig() {
@@ -107,7 +106,7 @@ export abstract class BaseCommand extends Command {
     }
 
     public monitorBlocks(): any {
-        this.listenerBlocks = new Listener(this.endpointUrl);
+        this.listenerBlocks = this.repositoryFactory.createListener();
         this.listenerBlocks.open().then(() => {
 
             this.blockSubscription = this.listenerBlocks.newBlock()
@@ -127,7 +126,7 @@ export abstract class BaseCommand extends Command {
             return false;
         }
 
-        this.listenersAddresses[address] = new Listener(this.endpointUrl);
+        this.listenersAddresses[address] = this.repositoryFactory.createListener();
         this.listenersAddresses[address].open().then(() => {
 
             // Monitor transaction errors

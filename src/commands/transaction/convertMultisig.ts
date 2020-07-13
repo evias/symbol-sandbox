@@ -37,6 +37,7 @@ import {
     BlockHttp,
     Transaction,
     BlockInfo,
+    TransactionGroup,
 } from 'symbol-sdk';
 import {from as observableFrom, Observable} from 'rxjs';
 import {filter, map, mergeMap, first} from 'rxjs/operators';
@@ -176,7 +177,7 @@ export default class extends BaseCommand {
         // Step 1: Announce LockFundsTransaction
         // -------------------------------------
 
-        const transactionHttp = new TransactionHttp(this.endpointUrl);
+        const transactionHttp = this.repositoryFactory.createTransactionRepository()
         transactionHttp.announce(signedLockFundsTx).subscribe(() => {
             console.log('Announced lock funds transaction');
             console.log('Hash:   ', signedLockFundsTx.hash);
@@ -191,15 +192,16 @@ export default class extends BaseCommand {
         // Step 2: Announce AggregateBonded with MultisigAccountModificationTransaction
         // ----------------------------------------------------------------------------
 
-        const blockListener = new Listener(this.endpointUrl)
-        const blockHttp = new BlockHttp(this.endpointUrl)
+        const blockListener = this.repositoryFactory.createListener()
+        const blockHttp = this.repositoryFactory.createBlockRepository()
         const lockFundsHash = signedLockFundsTx.hash
 
         // This step should only happen after the lock funds got confirmed.
         return blockListener.open().then(() => {
             return blockListener.newBlock().subscribe(async (block) => {
-                const txes = await blockHttp.getBlockTransactions(block.height).toPromise();
-                const hasLock = txes.find((tx: Transaction) => tx.transactionInfo.hash === lockFundsHash) !== undefined;
+
+                const txes = await transactionHttp.search({group: TransactionGroup.Confirmed, height: block.height}).toPromise()
+                const hasLock = txes.data.find((tx: Transaction) => tx.transactionInfo.hash === lockFundsHash) !== undefined;
 
                 if (!hasLock) {
                     return ;

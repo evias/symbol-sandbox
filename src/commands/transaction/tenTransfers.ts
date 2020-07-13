@@ -31,6 +31,7 @@ import {
     Listener,
     BlockHttp,
     Transaction,
+    TransactionGroup,
 } from 'symbol-sdk';
 
 import {OptionsResolver} from '../../options-resolver';
@@ -139,14 +140,15 @@ export default class extends BaseCommand {
 
         return new Promise(async (resolve, reject) => {
 
-            const blockListener = new Listener(this.endpointUrl)
-            const blockHttp = new BlockHttp(this.endpointUrl)
+            const blockListener = this.repositoryFactory.createListener()
+            const blockHttp = this.repositoryFactory.createBlockRepository()
             const firstTxHash = signedTransactions[0].hash
 
             return blockListener.open().then(() => {
                 return blockListener.newBlock().subscribe(async (block) => {
-                    const txes = await blockHttp.getBlockTransactions(block.height).toPromise();
-                    const hasFirst = txes.find((tx: Transaction) => tx.transactionInfo.hash === firstTxHash) !== undefined;
+
+                    const txes = await transactionHttp.search({group: TransactionGroup.Confirmed, height: block.height}).toPromise()
+                    const hasFirst = txes.data.find((tx: Transaction) => tx.transactionInfo.hash === firstTxHash) !== undefined;
 
                     if (!hasFirst) {
                         return ;
