@@ -14,7 +14,7 @@
         "build": "rm -rf build/ && tsc"
     },
     "dependencies": {
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "chalk": "^2.3.0",
         "cli-spinner": "^0.2.10",
         "clime": "^0.5.9",
